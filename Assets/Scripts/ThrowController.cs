@@ -2,29 +2,28 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// ĞîÁ¦Í¶ÖÀ£º°´×¡ĞîÁ¦£¬ËÉ¿ª°ÑÊÖÀïµÄÎïÌå°´Å×ÎïÏßÍ¶³ö¡£
-/// Ö»¹Ü"Á¦¶ÈºÍµ¯µÀ"£¬ÎïÌåÔÚÄÄ¡¢ÔõÃ´×¥·ÅÓÉ GrabController ¸ºÔğ¡£
-/// ÒÀÀµ GrabController µÄÈı¸ö¹«¿ª³ÉÔ±£ºIsHolding / HoldPosition / Release()
+/// è“„åŠ›æŠ•æ·ï¼šæŒ‰ä½é¼ æ ‡å·¦é”®è“„åŠ›ï¼Œæ¾å¼€æŠŠæ‰‹ä¸Šçš„"æœ€ä¸Šå±‚"ç‰©ä½“æŒ‰æŠ›ç‰©çº¿æŠ•å‡ºã€‚
+/// åªç®¡åŠ›åº¦å’Œå¼¹é“ï¼Œå æ”¾ä¸å–ç‰©ç”± GrabController è´Ÿè´£ã€‚
 /// </summary>
 [RequireComponent(typeof(GrabController))]
 public class ThrowController : MonoBehaviour
 {
-    [Header("ĞîÁ¦")]
-    [Tooltip("°´×¡¶à¾Ã´ïµ½×î´óÁ¦¶È£¨Ãë£©")]
+    [Header("è“„åŠ›")]
+    [Tooltip("æŒ‰ä½å¤šä¹…è¾¾åˆ°æœ€å¤§åŠ›åº¦ï¼ˆç§’ï¼‰")]
     public float MaxChargeTime = 1.2f;
 
-    [Header("µ¯µÀ")]
-    [Tooltip("ÇáµãÒ»ÏÂµÄ×îĞ¡³õËÙ¶È")]
+    [Header("å¼¹é“")]
+    [Tooltip("è½»ç‚¹ä¸€ä¸‹çš„æœ€å°åˆé€Ÿåº¦")]
     public float MinSpeed = 5f;
 
-    [Tooltip("ĞîÂúÁ¦µÄ×î´ó³õËÙ¶È")]
+    [Tooltip("è“„æ»¡åŠ›çš„æœ€å¤§åˆé€Ÿåº¦")]
     public float MaxSpeed = 13f;
 
-    [Tooltip("·¢Éä½Ç£¨Ïà¶ÔË®Æ½Ãæ£©£¬35¡ã ×óÓÒÅ×ÎïÏßÊÖ¸Ğ×î×ÔÈ»")]
+    [Tooltip("å‘å°„è§’ï¼ˆç›¸å¯¹æ°´å¹³é¢ï¼‰ï¼Œ35Â° å·¦å³æŠ›ç‰©çº¿æ‰‹æ„Ÿæœ€è‡ªç„¶")]
     [Range(5f, 80f)]
     public float ThrowAngle = 35f;
 
-    [Tooltip("Í¶³öË²¼äµÄ×ÔĞıËÙ¶È£¬0 ±íÊ¾²»×ª")]
+    [Tooltip("æŠ•å‡ºç¬é—´çš„è‡ªæ—‹é€Ÿåº¦ï¼Œ0 è¡¨ç¤ºä¸è½¬")]
     public float SpinSpeed = 8f;
 
     private GrabController grab;
@@ -33,7 +32,7 @@ public class ThrowController : MonoBehaviour
 
     public bool IsCharging => charging;
 
-    /// <summary>ĞîÁ¦½ø¶È 0~1£¬ÒÔºó×öĞîÁ¦Ìõ UI Ö±½Ó¶ÁÕâ¸ö</summary>
+    /// <summary>è“„åŠ›è¿›åº¦ 0~1ï¼Œä»¥ååšè“„åŠ›æ¡ UI ç›´æ¥è¯»è¿™ä¸ª</summary>
     public float ChargeRatio => Mathf.Clamp01(chargeTime / Mathf.Max(0.01f, MaxChargeTime));
 
     void Awake()
@@ -43,7 +42,7 @@ public class ThrowController : MonoBehaviour
 
     void Update()
     {
-        // ĞîÁ¦ÖĞÈç¹ûÊÖÀïµÄ¶«Î÷Ã»ÁË£¨±ÈÈç°´ Q ·ÅÏÂÁË£©£¬Á¢¿ÌÖĞ¶Ï£¬±ÜÃâ¿ÕÖĞĞîÁ¦
+        // è“„åŠ›ä¸­æ‰‹ä¸Šçš„ä¸œè¥¿æ²¡äº†ï¼ˆç†è®ºä¸Šä¸ä¼šå‘ç”Ÿï¼Œé˜²å¾¡æ€§å¤„ç†ï¼‰ï¼Œç«‹åˆ»ä¸­æ–­
         if (charging && !grab.IsHolding)
         {
             charging = false;
@@ -55,7 +54,7 @@ public class ThrowController : MonoBehaviour
         chargeTime = Mathf.Min(chargeTime + Time.deltaTime, MaxChargeTime);
     }
 
-    /// <summary>ÓÉ PlayerInput µÄ Throw ÊÂ¼şµ÷ÓÃ£º°´ÏÂ¿ªÊ¼ĞîÁ¦£¬ËÉ¿ªÍ¶³ö</summary>
+    /// <summary>ç”± PlayerInput çš„ Throw äº‹ä»¶è°ƒç”¨ï¼šæŒ‰ä¸‹å¼€å§‹è“„åŠ›ï¼Œæ¾å¼€æŠ•å‡º</summary>
     public void OnThrow(InputAction.CallbackContext ctx)
     {
         if (ctx.started) BeginCharge();
@@ -64,7 +63,7 @@ public class ThrowController : MonoBehaviour
 
     private void BeginCharge()
     {
-        if (!grab.IsHolding) return;   // ÊÖÀïÃ»¶«Î÷¾Í²»ĞîÁ¦
+        if (!grab.IsHolding) return;   // æ‰‹ä¸Šæ²¡ä¸œè¥¿å°±ä¸è“„åŠ›
         charging = true;
         chargeTime = 0f;
     }
@@ -77,32 +76,30 @@ public class ThrowController : MonoBehaviour
         float ratio = ChargeRatio;
         chargeTime = 0f;
 
-        Rigidbody rb = grab.Release();   // ´Ó¾ÙÆğ×´Ì¬½»»¹¸øÎïÀí
+        Rigidbody rb = grab.Release();   // ä»æœ€ä¸Šå±‚å–èµ°ï¼Œäº¤è¿˜ç»™ç‰©ç†
         if (rb == null) return;
 
-        rb.velocity = LaunchVelocity(ratio);
+        rb.velocity = LaunchDirection() * Mathf.Lerp(MinSpeed, MaxSpeed, ratio);
         rb.angularVelocity = transform.right * (-SpinSpeed * ratio);
     }
 
-    /// <summary>¹Ì¶¨·¢Éä½Ç£¬Ö»ÈÃËÙ¶ÈËæĞîÁ¦±ä»¯ ¡ª¡ª »¡ÏßĞÎ×´ÎÈ¶¨£¬Âäµã¿ÉÔ¤ÆÚ</summary>
-    private Vector3 LaunchVelocity(float ratio)
+    /// <summary>å›ºå®šå‘å°„è§’ï¼Œåªè®©é€Ÿåº¦éšè“„åŠ›å˜åŒ– â€”â€” å¼§çº¿å½¢çŠ¶ç¨³å®šï¼Œè½ç‚¹å¯é¢„æœŸ</summary>
+    private Vector3 LaunchDirection()
     {
-        float speed = Mathf.Lerp(MinSpeed, MaxSpeed, ratio);
         float rad = ThrowAngle * Mathf.Deg2Rad;
-        Vector3 dir = transform.forward * Mathf.Cos(rad) + Vector3.up * Mathf.Sin(rad);
-        return dir * speed;
+        return transform.forward * Mathf.Cos(rad) + Vector3.up * Mathf.Sin(rad);
     }
 
     private void OnDrawGizmosSelected()
     {
-        // ÔËĞĞÖĞÇÒÊÖÀïÓĞ¶«Î÷Ê±£¬»­Ô¤²âÅ×ÎïÏß£¨Ñ¡ÖĞÍæ¼ÒÔÚ Scene ÊÓÍ¼¿É¼û£©
+        // è¿è¡Œä¸­ä¸”æ‰‹ä¸Šæœ‰ä¸œè¥¿æ—¶ï¼Œç”»é¢„æµ‹æŠ›ç‰©çº¿ï¼ˆé€‰ä¸­ç©å®¶åœ¨ Scene è§†å›¾å¯è§ï¼‰
         if (!Application.isPlaying) return;
 
         if (grab == null) grab = GetComponent<GrabController>();
         if (grab == null || !grab.IsHolding) return;
 
         Vector3 p = grab.HoldPosition;
-        Vector3 v = LaunchVelocity(ChargeRatio);
+        Vector3 v = LaunchDirection() * Mathf.Lerp(MinSpeed, MaxSpeed, ChargeRatio);
 
         Gizmos.color = Color.Lerp(Color.green, Color.red, ChargeRatio);
         const float dt = 0.06f;
@@ -117,4 +114,3 @@ public class ThrowController : MonoBehaviour
         }
     }
 }
-
