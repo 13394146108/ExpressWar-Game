@@ -4,7 +4,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerController : MonoBehaviour
+public class MovePlayerController : MonoBehaviour
 {
     [Header("ËÙ¶È")]
     public float Speed = 5;
