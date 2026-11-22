@@ -100,19 +100,33 @@ public class GrabController : MonoBehaviour
 
     private void Drop()
     {
+        Rigidbody rb = Release();
+        if (rb == null) return;
+
+        rb.velocity = Vector3.zero;          // 否则切换瞬间会弹飞
+        rb.angularVelocity = Vector3.zero;
+    }
+
+    /// <summary>
+    /// 把物体从"举起"状态交还给物理，返回那个刚体（没拿东西时返回 null）。
+    /// 只负责"放手"，后续是掉落还是飞出去由调用方决定。
+    /// </summary>
+    public Rigidbody Release()
+    {
+        if (held == null) return null;
+
         Rigidbody rb = held;
         held = null;
         HeldBodies.Remove(rb);
 
-        // 先摆到玩家面前，再交还给物理（重力负责让它自由落下）
+        // 先摆到玩家面前，再交还给物理
         rb.transform.SetPositionAndRotation(HoldPosition, HoldRotation);
         rb.position = HoldPosition;
         rb.rotation = HoldRotation;
 
         SetColliders(rb, true);
         rb.isKinematic = false;
-        rb.velocity = Vector3.zero;          // 否则切换瞬间会弹飞
-        rb.angularVelocity = Vector3.zero;
+        return rb;
     }
 
     // 玩家在 Update 里移动，放在 LateUpdate 同步，方块才不会抖
