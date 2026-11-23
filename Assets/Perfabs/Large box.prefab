@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 6710998676332428961}
   - component: {fileID: 8343362529811181750}
   - component: {fileID: 4815393724556678617}
+  - component: {fileID: -786061570168658716}
   m_Layer: 0
   m_Name: Large box
   m_TagString: CanGrab
@@ -147,3 +148,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Size: 3
+--- !u!114 &-786061570168658716
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 882828079525837441}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc114c8c6fa98f742a49c96ce73060e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: 0
+  fragileColor: {r: 0.15, g: 0.45, b: 1, a: 1}
+  explosiveColor: {r: 1, g: 0.15, b: 0.15, a: 1}
+  fragileImpulseThreshold: 0
+  explosiveImpulseThreshold: 0
+  explosiveRadius: 2
+  explosiveForce: 6

@@ -1828,6 +1828,14 @@ MonoBehaviour:
   - {fileID: 882828079525837441, guid: fac1672bf35ad6f418411a15e7a24e21, type: 3}
   TakenDistance: 0.31
   RespawnDelay: 2
+  RandomizeFeature: 1
+  FeatureWeights:
+  - Type: 0
+    Weight: 50
+  - Type: 1
+    Weight: 25
+  - Type: 2
+    Weight: 25
 --- !u!1 &1498144285
 GameObject:
   m_ObjectHideFlags: 0
@@ -2114,6 +2122,14 @@ MonoBehaviour:
   - {fileID: 882828079525837441, guid: fac1672bf35ad6f418411a15e7a24e21, type: 3}
   TakenDistance: 0.31
   RespawnDelay: 2
+  RandomizeFeature: 1
+  FeatureWeights:
+  - Type: 0
+    Weight: 50
+  - Type: 1
+    Weight: 25
+  - Type: 2
+    Weight: 25
 --- !u!1 &1842734219
 GameObject:
   m_ObjectHideFlags: 0
