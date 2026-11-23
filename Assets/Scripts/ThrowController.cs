@@ -29,8 +29,12 @@ public class ThrowController : MonoBehaviour
     private GrabController grab;
     private bool charging;
     private float chargeTime;
+    private RackController currentRack;
 
     public bool IsCharging => charging;
+
+    /// <summary>当前是否在货架触发区内</summary>
+    public bool IsAtRack => currentRack != null;
 
     /// <summary>蓄力进度 0~1，以后做蓄力条 UI 直接读这个</summary>
     public float ChargeRatio => Mathf.Clamp01(chargeTime / Mathf.Max(0.01f, MaxChargeTime));
@@ -40,8 +44,23 @@ public class ThrowController : MonoBehaviour
         grab = GetComponent<GrabController>();
     }
 
+    /// <summary>由 RackController 的触发区调用：进入 / 离开货架</summary>
+    public void EnterRack(RackController rack)
+    {
+        if (rack != null) currentRack = rack;
+    }
+
+    public void ExitRack(RackController rack)
+    {
+        if (currentRack == rack) currentRack = null;
+    }
+
     void Update()
     {
+        // 在货架范围内按 Q：从 +X 端往 -X 端依次取下一件
+        if (currentRack != null && Keyboard.current != null && Keyboard.current.qKey.wasPressedThisFrame)
+            TakeOneFromRack();
+
         // 蓄力中手上的东西没了（理论上不会发生，防御性处理），立刻中断
         if (charging && !grab.IsHolding)
         {
@@ -52,6 +71,16 @@ public class ThrowController : MonoBehaviour
 
         if (!charging) return;
         chargeTime = Mathf.Min(chargeTime + Time.deltaTime, MaxChargeTime);
+    }
+
+    private void TakeOneFromRack()
+    {
+        Rigidbody rb = currentRack.TakeLast();
+        if (rb == null) return;
+
+        // 优先放回手上；装不下就原样放回货架（它本来就是最后一格）
+        if (!grab.TryAddToHands(rb))
+            currentRack.Place(rb);
     }
 
     /// <summary>由 PlayerInput 的 Throw 事件调用：按下开始蓄力，松开投出</summary>
@@ -76,7 +105,23 @@ public class ThrowController : MonoBehaviour
         float ratio = ChargeRatio;
         chargeTime = 0f;
 
-        Rigidbody rb = grab.Release();   // 从最上层取走，交还给物理
+        if (!grab.IsHolding) return;
+
+        // 在货架触发区内：只做「放置」，不再投掷
+        if (currentRack != null)
+        {
+            Rigidbody top = grab.TopBody;
+            if (top != null && currentRack.CanPlace(top))
+            {
+                Rigidbody placed = grab.Release();     // 从最上层取走
+                if (placed != null) currentRack.Place(placed);
+            }
+            // 放不下（货架满 / 长度超标）：什么都不做，快递留在手上
+            return;
+        }
+
+        // 不在货架旁：正常投掷
+        Rigidbody rb = grab.Release();
         if (rb == null) return;
 
         rb.velocity = LaunchDirection() * Mathf.Lerp(MinSpeed, MaxSpeed, ratio);

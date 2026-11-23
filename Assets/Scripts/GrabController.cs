@@ -13,8 +13,8 @@ public class GrabController : MonoBehaviour
     [Tooltip("以玩家为中心搜索可抓取物的半径")]
     public float GrabRange = 1.3f;
 
-    [Tooltip("超过这个物理质量的物体搬不动（和承重无关）")]
-    public float MaxMass = 20f;
+    //[Tooltip("超过这个物理质量的物体搬不动（和承重无关）")]
+    //public float MaxMass = 20f;
 
     [Tooltip("玩家能拿起的总重量")]
     public int MaxCarryWeight = 3;
@@ -48,6 +48,9 @@ public class GrabController : MonoBehaviour
 
     public bool IsHolding => stack.Count > 0;
     public int HeldCount => stack.Count;
+
+    /// <summary>最上层物体（货架放置时用来判断尺寸），手里没东西时为 null</summary>
+    public Rigidbody TopBody => stack.Count > 0 ? stack[stack.Count - 1].Body : null;
 
     /// <summary>当前总重量</summary>
     public int CurrentWeight
@@ -130,7 +133,7 @@ public class GrabController : MonoBehaviour
         if (!rb.CompareTag(GrabTag) && !col.CompareTag(GrabTag)) return false; // 没打标签的不能抓
         if (rb == selfBody) return false;                   // 自己
         if (rb.isKinematic) return false;                   // 被设为 kinematic 的物体
-        if (rb.mass > MaxMass) return false;                // 太重
+        //if (rb.mass > MaxMass) return false;                // 太重
         if (HeldBodies.Contains(rb)) return false;          // 已被别人拿着
         if (rb.GetComponentInParent<GrabController>() != null) return false; // 其他玩家
         return true;
@@ -167,6 +170,37 @@ public class GrabController : MonoBehaviour
         item.Body.isKinematic = false;
 
         return item.Body;
+    }
+
+    /// <summary>
+    /// 把货架上取下的一件物体直接放回手上（供 RackController 取件用）。
+    /// 装不下 / 已拿着 / 被别人拿着时返回 false，且不改动任何状态。
+    /// </summary>
+    public bool TryAddToHands(Rigidbody rb)
+    {
+        if (rb == null) return false;
+        if (stack.Count >= MaxSlots) return false;
+
+        GrabbableItem item = rb.GetComponentInParent<GrabbableItem>();
+        int weight = item != null ? item.Weight : 1;
+
+        if (weight > RemainingWeight) return false;
+        if (HeldBodies.Contains(rb)) return false;
+
+        HeldBodies.Add(rb);
+
+        rb.transform.SetParent(null, true);   // 若还挂在货架下，先脱离
+        SetColliders(rb, false);              // 举起期间不参与物理
+        rb.isKinematic = true;
+
+        stack.Add(new HeldItem
+        {
+            Body = rb,
+            Weight = weight,
+            Height = MeasureHeight(rb)
+        });
+        UpdateStackPositions();
+        return true;
     }
 
     /// <summary>第 index 个槽位的世界坐标（物体轴心所在处）</summary>

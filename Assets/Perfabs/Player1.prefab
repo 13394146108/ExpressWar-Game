@@ -15,6 +15,8 @@ GameObject:
   - component: {fileID: 8096941466387151811}
   - component: {fileID: 2380864338382675646}
   - component: {fileID: 7841014406464588879}
+  - component: {fileID: 534679444892174883}
+  - component: {fileID: 5878380653207149658}
   m_Layer: 0
   m_Name: Player1
   m_TagString: Untagged
@@ -133,6 +135,46 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: ee06e066-2798-4757-99f2-4a772c8f5205
     m_ActionName: XBoxGamePlayer/Move
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 534679444892174883}
+        m_TargetAssemblyTypeName: GrabController, Assembly-CSharp
+        m_MethodName: OnGrab
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 628e6fce-870d-4749-af48-3f73422caee2
+    m_ActionName: KeyBoardGamePlay/Grab[/Keyboard/q]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 382a4006-0ce1-4317-a8fa-eea4148782a4
+    m_ActionName: XBoxGamePlayer/Grab
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 5878380653207149658}
+        m_TargetAssemblyTypeName: ThrowController, Assembly-CSharp
+        m_MethodName: OnThrow
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 36909a30-4941-4f48-b04f-536e54887553
+    m_ActionName: KeyBoardGamePlay/Throw[/Mouse/leftButton]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 7eb58675-f349-4862-8bfd-02ea9fa6cb0a
+    m_ActionName: XBoxGamePlayer/Throw
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: KeyBoardGamePlay
@@ -171,7 +213,7 @@ CapsuleCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.8
+  m_Radius: 0.5
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 0, z: 0}
@@ -200,8 +242,42 @@ Rigidbody:
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
-  m_Constraints: 126
+  m_Constraints: 112
   m_CollisionDetection: 0
+--- !u!114 &534679444892174883
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1320064208748622424}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f52008cbc4f1714690d8628d506a09c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GrabRange: 1.3
+  MaxCarryWeight: 3
+  MaxSlots: 3
+  HoldOffset: {x: 0, y: 0.2, z: 0.66}
+  SlotGap: 0.04
+--- !u!114 &5878380653207149658
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1320064208748622424}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1d56b0f3cd00fa449b431070270c3bf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  MaxChargeTime: 1.2
+  MinSpeed: 1
+  MaxSpeed: 13
+  ThrowAngle: 35
+  SpinSpeed: 8
 --- !u!1 &7319694981039088230
 GameObject:
   m_ObjectHideFlags: 0
