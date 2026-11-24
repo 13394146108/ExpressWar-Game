@@ -35,6 +35,9 @@ public class GrabController : MonoBehaviour
     // 全局记录正在被举起的物体，避免两个玩家抢同一个
     private static readonly HashSet<Rigidbody> HeldBodies = new HashSet<Rigidbody>();
 
+    /// <summary>为 true 时忽略抓取输入（背人期间由 ClimbController 关掉）</summary>
+    [System.NonSerialized] public bool InputLocked;
+
     /// <summary>手里拿着的一个物体（列表按从下到上排列）</summary>
     private class HeldItem
     {
@@ -82,6 +85,7 @@ public class GrabController : MonoBehaviour
     {
         // 按钮动作会依次触发 started / performed / canceled，只认按下那一刻
         if (!ctx.performed) return;
+        if (InputLocked) return;   // 背人期间抓取被锁
 
         TryGrab();
     }
@@ -218,6 +222,12 @@ public class GrabController : MonoBehaviour
         }
 
         return p;
+    }
+
+    /// <summary>立刻把手上物体对齐到当前槽位（被背着时位置突变后补一次，避免慢一帧）</summary>
+    public void RefreshHold()
+    {
+        UpdateStackPositions();
     }
 
     private void UpdateStackPositions()

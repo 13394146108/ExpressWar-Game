@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 8911873527917948976}
   - component: {fileID: 130195625416935764}
   - component: {fileID: 155854092491552220}
+  - component: {fileID: 7423000000000000002}
   m_Layer: 0
   m_Name: Player2
   m_TagString: Untagged
@@ -136,7 +137,31 @@ MonoBehaviour:
     m_ActionId: ee06e066-2798-4757-99f2-4a772c8f5205
     m_ActionName: XBoxGamePlayer/Move
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 130195625416935764}
+        m_TargetAssemblyTypeName: GrabController, Assembly-CSharp
+        m_MethodName: OnGrab
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument:
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 155854092491552220}
+        m_TargetAssemblyTypeName: ThrowController, Assembly-CSharp
+        m_MethodName: OnTake
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument:
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: 628e6fce-870d-4749-af48-3f73422caee2
     m_ActionName: KeyBoardGamePlay/Grab[/Keyboard/q]
   - m_PersistentCalls:
@@ -151,6 +176,18 @@ MonoBehaviour:
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 155854092491552220}
+        m_TargetAssemblyTypeName: ThrowController, Assembly-CSharp
+        m_MethodName: OnTake
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument:
           m_BoolArgument: 0
         m_CallState: 2
     m_ActionId: 382a4006-0ce1-4317-a8fa-eea4148782a4
@@ -175,6 +212,38 @@ MonoBehaviour:
         m_CallState: 2
     m_ActionId: 7eb58675-f349-4862-8bfd-02ea9fa6cb0a
     m_ActionName: XBoxGamePlayer/Throw
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 7423000000000000002}
+        m_TargetAssemblyTypeName: ClimbController, Assembly-CSharp
+        m_MethodName: OnClimb
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument:
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 7b4c0540-c55d-4607-8e4d-f9934dcd965b
+    m_ActionName: KeyBoardGamePlay/Climb[/Keyboard/e]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 7423000000000000002}
+        m_TargetAssemblyTypeName: ClimbController, Assembly-CSharp
+        m_MethodName: OnClimb
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument:
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 255aa6be-b6c3-485a-9a14-6df6988cbbe9
+    m_ActionName: XBoxGamePlayer/Climb
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: XBoxGamePlayer
@@ -383,3 +452,19 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &7423000000000000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6908977288045763296}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db388536759b7024e8550ee53a3893e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DetectBox: {fileID: 0}
+  DetectRadius: 1.2
+  MountGap: 0.05
+  DismountOffset: 0.8

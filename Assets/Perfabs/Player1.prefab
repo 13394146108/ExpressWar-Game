@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 7841014406464588879}
   - component: {fileID: 534679444892174883}
   - component: {fileID: 5878380653207149658}
+  - component: {fileID: 7423000000000000001}
   m_Layer: 0
   m_Name: Player1
   m_TagString: Untagged
@@ -149,10 +150,46 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 5878380653207149658}
+        m_TargetAssemblyTypeName: ThrowController, Assembly-CSharp
+        m_MethodName: OnTake
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument:
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: 628e6fce-870d-4749-af48-3f73422caee2
     m_ActionName: KeyBoardGamePlay/Grab[/Keyboard/q]
   - m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 534679444892174883}
+        m_TargetAssemblyTypeName: GrabController, Assembly-CSharp
+        m_MethodName: OnGrab
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument:
+          m_BoolArgument: 0
+        m_CallState: 2
+      - m_Target: {fileID: 5878380653207149658}
+        m_TargetAssemblyTypeName: ThrowController, Assembly-CSharp
+        m_MethodName: OnTake
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument:
+          m_BoolArgument: 0
+        m_CallState: 2
     m_ActionId: 382a4006-0ce1-4317-a8fa-eea4148782a4
     m_ActionName: XBoxGamePlayer/Grab
   - m_PersistentCalls:
@@ -175,6 +212,38 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: 7eb58675-f349-4862-8bfd-02ea9fa6cb0a
     m_ActionName: XBoxGamePlayer/Throw
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 7423000000000000001}
+        m_TargetAssemblyTypeName: ClimbController, Assembly-CSharp
+        m_MethodName: OnClimb
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument:
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 7b4c0540-c55d-4607-8e4d-f9934dcd965b
+    m_ActionName: KeyBoardGamePlay/Climb[/Keyboard/e]
+  - m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 7423000000000000001}
+        m_TargetAssemblyTypeName: ClimbController, Assembly-CSharp
+        m_MethodName: OnClimb
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument:
+          m_BoolArgument: 0
+        m_CallState: 2
+    m_ActionId: 255aa6be-b6c3-485a-9a14-6df6988cbbe9
+    m_ActionName: XBoxGamePlayer/Climb
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: KeyBoardGamePlay
@@ -383,3 +452,19 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &7423000000000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1320064208748622424}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db388536759b7024e8550ee53a3893e0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  DetectBox: {fileID: 0}
+  DetectRadius: 1.2
+  MountGap: 0.05
+  DismountOffset: 0.8

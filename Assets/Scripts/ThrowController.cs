@@ -31,6 +31,9 @@ public class ThrowController : MonoBehaviour
     private float chargeTime;
     private RackController currentRack;
 
+    /// <summary>为 true 时忽略取件输入（背人期间由 ClimbController 关掉）</summary>
+    [System.NonSerialized] public bool InputLocked;
+
     public bool IsCharging => charging;
 
     /// <summary>当前是否在货架触发区内</summary>
@@ -57,9 +60,8 @@ public class ThrowController : MonoBehaviour
 
     void Update()
     {
-        // 在货架范围内按 Q：从 +X 端往 -X 端依次取下一件
-        if (currentRack != null && Keyboard.current != null && Keyboard.current.qKey.wasPressedThisFrame)
-            TakeOneFromRack();
+        // 取件不再直接读键盘：改由 PlayerInput 的 Grab 事件转到 OnTake，
+        // 键盘玩家按 Q、手柄玩家按 A，各用各的设备，互不串键。
 
         // 蓄力中手上的东西没了（理论上不会发生，防御性处理），立刻中断
         if (charging && !grab.IsHolding)
@@ -81,6 +83,19 @@ public class ThrowController : MonoBehaviour
         // 优先放回手上；装不下就原样放回货架（它本来就是最后一格）
         if (!grab.TryAddToHands(rb))
             currentRack.Place(rb);
+    }
+
+    /// <summary>
+    /// 由 PlayerInput 的 Grab 事件调用：键盘玩家按 Q、手柄玩家按 A。
+    /// 在货架触发区内按下拿取键时，从 +X 端往 -X 端依次取下一件。
+    /// </summary>
+    public void OnTake(InputAction.CallbackContext ctx)
+    {
+        if (!ctx.performed) return;        // 只认按下那一刻
+        if (InputLocked) return;           // 背人期间不允许取件
+        if (currentRack == null) return;   // 不在货架触发区内
+
+        TakeOneFromRack();
     }
 
     /// <summary>由 PlayerInput 的 Throw 事件调用：按下开始蓄力，松开投出</summary>
