@@ -3,7 +3,9 @@ using UnityEngine.InputSystem;
 
 /// <summary>
 /// 蓄力投掷：按住鼠标左键蓄力，松开把手上的"最上层"物体按抛物线投出。
-/// 只管力度和弹道，叠放与取物由 GrabController 负责。
+/// 只在货架触发区外投掷 —— 站在货架旁时，同一个键改成「放上去」，
+/// 放哪由玩家站的位置决定（见 RackController）；拿取同理，取离站位最近的那件。
+/// 叠放与取物本身由 GrabController 负责。
 /// </summary>
 [RequireComponent(typeof(GrabController))]
 public class ThrowController : MonoBehaviour
@@ -75,19 +77,10 @@ public class ThrowController : MonoBehaviour
         chargeTime = Mathf.Min(chargeTime + Time.deltaTime, MaxChargeTime);
     }
 
-    private void TakeOneFromRack()
-    {
-        Rigidbody rb = currentRack.TakeLast();
-        if (rb == null) return;
-
-        // 优先放回手上；装不下就原样放回货架（它本来就是最后一格）
-        if (!grab.TryAddToHands(rb))
-            currentRack.Place(rb);
-    }
-
     /// <summary>
     /// 由 PlayerInput 的 Grab 事件调用：键盘玩家按 Q、手柄玩家按 A。
-    /// 在货架触发区内按下拿取键时，从 +X 端往 -X 端依次取下一件。
+    /// 在货架触发区内按下拿取键时，取走离玩家站位最近的那件（和放置先后无关）。
+    /// 手上装不下（超重 / 叠满）时不改动货架状态。
     /// </summary>
     public void OnTake(InputAction.CallbackContext ctx)
     {
@@ -95,7 +88,7 @@ public class ThrowController : MonoBehaviour
         if (InputLocked) return;           // 背人期间不允许取件
         if (currentRack == null) return;   // 不在货架触发区内
 
-        TakeOneFromRack();
+        currentRack.TryTakeToHands(grab, transform.position);
     }
 
     /// <summary>由 PlayerInput 的 Throw 事件调用：按下开始蓄力，松开投出</summary>
@@ -122,16 +115,12 @@ public class ThrowController : MonoBehaviour
 
         if (!grab.IsHolding) return;
 
-        // 在货架触发区内：只做「放置」，不再投掷
+        // 在货架触发区内：只做「放置」，不再投掷。
+        // 放在哪由玩家此刻站的位置决定（先算好落点，放得下才真正从手里取走）。
         if (currentRack != null)
         {
-            Rigidbody top = grab.TopBody;
-            if (top != null && currentRack.CanPlace(top))
-            {
-                Rigidbody placed = grab.Release();     // 从最上层取走
-                if (placed != null) currentRack.Place(placed);
-            }
-            // 放不下（货架满 / 长度超标）：什么都不做，快递留在手上
+            currentRack.TryPlaceFromHands(grab, transform.position);
+            // 放不下（那块地方已经放满）：什么都不做，快递留在手上
             return;
         }
 
@@ -157,6 +146,21 @@ public class ThrowController : MonoBehaviour
 
         if (grab == null) grab = GetComponent<GrabController>();
         if (grab == null || !grab.IsHolding) return;
+
+        // 站在货架旁：投掷被「放置」取代，改成预览会落到哪一段
+        if (currentRack != null)
+        {
+            Rigidbody top = grab.TopBody;
+            if (top != null &&
+                currentRack.TryPreviewSpot(top, transform.position, out Vector3 spot, out float len))
+            {
+                Vector3 axis = currentRack.transform.right * (len * 0.5f);
+                Gizmos.color = new Color(0.2f, 1f, 1f, 0.95f);
+                Gizmos.DrawWireSphere(spot, 0.035f);
+                Gizmos.DrawLine(spot - axis, spot + axis);
+            }
+            return;
+        }
 
         Vector3 p = grab.HoldPosition;
         Vector3 v = LaunchDirection() * Mathf.Lerp(MinSpeed, MaxSpeed, ChargeRatio);

@@ -252,6 +252,7 @@ GameObject:
   - component: {fileID: 8551786192205411991}
   - component: {fileID: 9152249450624254501}
   - component: {fileID: 9146835913052790090}
+  - component: {fileID: 2295528256798785005}
   m_Layer: 0
   m_Name: Ban1
   m_TagString: rack
@@ -380,10 +381,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SlotCount: 6
   SlotSpacing: 0.287
+  AutoFitUnitsToBoard: 1
+  EdgePadding: 0.02
   AlignToRackRotation: 1
   ParcelRoot: {fileID: 4478460598568390438}
   RegisterPrePlaced: 1
   SnapPrePlaced: 1
+--- !u!114 &2295528256798785005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2905980694485300962}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f756560261800e47b0052dba1a0f699, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  LargeParcelPrefab: {fileID: 0}
+  TargetUnits: 3
 --- !u!1 &4819194526987954090
 GameObject:
   m_ObjectHideFlags: 0
@@ -460,6 +477,7 @@ GameObject:
   - component: {fileID: 4073802039924650703}
   - component: {fileID: 5209398188018089453}
   - component: {fileID: 6517462973224440192}
+  - component: {fileID: 156992342447664555}
   m_Layer: 0
   m_Name: Ban2
   m_TagString: rack
@@ -588,10 +606,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   SlotCount: 6
   SlotSpacing: 0.277
+  AutoFitUnitsToBoard: 1
+  EdgePadding: 0.02
   AlignToRackRotation: 1
   ParcelRoot: {fileID: 8629549509766142447}
   RegisterPrePlaced: 1
   SnapPrePlaced: 1
+--- !u!114 &156992342447664555
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7870548749974622667}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f756560261800e47b0052dba1a0f699, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  LargeParcelPrefab: {fileID: 0}
+  TargetUnits: 3
 --- !u!1 &8550367234864799473
 GameObject:
   m_ObjectHideFlags: 0
