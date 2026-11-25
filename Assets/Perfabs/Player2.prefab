@@ -507,3 +507,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Table: {fileID: 0}
   GiveRange: 1.2
+  Customer: {fileID: 0}
+  ConsumeDelay: 0.35

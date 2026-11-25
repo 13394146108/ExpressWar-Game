@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -21,6 +22,16 @@ public class GiveControl : MonoBehaviour
     [Tooltip("玩家离桌面边缘多近才能交付（米，只算水平距离）")]
     public float GiveRange = 1.2f;
 
+    [Header("顾客 / 判定")]
+    [Tooltip("交付目标顾客；留空时自动找场景里的 CustomerOrder")]
+    public CustomerOrder Customer;
+
+    [Tooltip("快递摆到桌上后多久消失并刷新顾客需求（秒），0 = 立即")]
+    [Min(0f)] public float ConsumeDelay = 0.35f;
+
+    /// <summary>交付结果：参数为「是否正确」和「当时顾客的订单」</summary>
+    public event System.Action<bool, ParcelOrder> Delivered;
+
     [Header("运行时状态")]
     [Tooltip("当前放在桌上的那件快递（只读）")]
     [System.NonSerialized] public Rigidbody PlacedBody;
@@ -29,6 +40,7 @@ public class GiveControl : MonoBehaviour
 
     private GrabController hands;
     private Collider tableCollider;
+    private CustomerPatience patience;
 
     /// <summary>桌上是不是已经有快递了</summary>
     public bool HasPlaced => PlacedBody != null;
@@ -67,6 +79,7 @@ public class GiveControl : MonoBehaviour
         if (rb == null) return false;
 
         PlaceOnTable(rb);
+        Deliver(rb);      // 判定对错 → 稍后消失 → 顾客刷新需求
         return true;
     }
 
@@ -109,6 +122,81 @@ public class GiveControl : MonoBehaviour
 
         SetGrabbable(rb, false);   // 从这一刻起谁都拿不起来
         PlacedBody = rb;
+    }
+
+    // ---------- 交付判定 ----------
+
+    /// <summary>判断这件快递对不对，并安排它消失 + 刷新顾客需求</summary>
+    private void Deliver(Rigidbody rb)
+    {
+        if (Customer == null) Customer = FindObjectOfType<CustomerOrder>();
+
+        if (Customer == null)
+        {
+            Debug.LogWarning("[Give] 场景里没有 CustomerOrder，交付判定跳过", this);
+            StartCoroutine(ConsumeRoutine(rb, -1, false));
+            return;
+        }
+
+        ParcelOrder order = Customer.CurrentOrder;
+        int orderVersion = Customer.Version;
+        bool correct = IsMatch(rb, order);
+
+        Delivered?.Invoke(correct, order);
+
+        // 通知顾客的耐心条：错误降一格（正确默认不变）
+        if (patience == null) patience = Customer.GetComponent<CustomerPatience>();
+        if (patience != null) patience.NotifyDelivered(correct);
+
+        Debug.Log(correct
+            ? $"[Give] 交付正确：{Describe(rb)}"
+            : $"[Give] 交付错误：顾客要 {order.DisplayText}，实际 {Describe(rb)}", this);
+
+        StartCoroutine(ConsumeRoutine(rb, orderVersion, correct));
+    }
+
+    /// <summary>
+    /// 不管对错，桌上的快递都会消失；
+    /// 只有交付正确才换新需求，送错只是扣耐心（由 CustomerPatience 处理），顾客继续等。
+    /// 耐心耗尽后的换需求由 CustomerPatience.OnDepleted 负责。
+    /// </summary>
+    private IEnumerator ConsumeRoutine(Rigidbody rb, int orderVersion, bool correct)
+    {
+        if (ConsumeDelay > 0f) yield return new WaitForSeconds(ConsumeDelay);
+        else yield return null;
+
+        if (rb != null) Destroy(rb.gameObject);
+        PlacedBody = null;
+
+        // 送错不换需求；等待期间如果顾客已经因为耐心耗尽换过需求，也不要重复刷新
+        if (correct && Customer != null && Customer.Version == orderVersion)
+            Customer.RollNewOrder();
+    }
+
+    /// <summary>尺寸和颜色是否都符合顾客需求</summary>
+    private static bool IsMatch(Rigidbody rb, ParcelOrder order)
+    {
+        GrabbableItem item = rb.GetComponentInParent<GrabbableItem>();
+        if (item == null) return false;
+
+        return order.Size == ToOrderSize(item.Size)
+            && order.ColorMask == ParcelColor.GetColorMask(rb);
+    }
+
+    /// <summary>把快递转成显示文字，例如 "Large Red+Blue"</summary>
+    private static string Describe(Rigidbody rb)
+    {
+        GrabbableItem item = rb.GetComponentInParent<GrabbableItem>();
+        OrderSize size = item != null ? ToOrderSize(item.Size) : OrderSize.Small;
+
+        return new ParcelOrder(size, ParcelColor.GetColorMask(rb)).DisplayText;
+    }
+
+    private static OrderSize ToOrderSize(GrabbableItem.ItemSize size)
+    {
+        if (size == GrabbableItem.ItemSize.Medium) return OrderSize.Medium;
+        if (size == GrabbableItem.ItemSize.Large) return OrderSize.Large;
+        return OrderSize.Small;
     }
 
     /// <summary>只保留「可抓」这一种状态切换：kinematic + 去掉 CanGrab 标签</summary>
