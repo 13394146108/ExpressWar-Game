@@ -3,8 +3,8 @@ using UnityEngine.InputSystem;
 
 /// <summary>
 /// 蓄力投掷：按住鼠标左键蓄力，松开把手上的"最上层"物体按抛物线投出。
-/// 只在货架触发区外投掷 —— 站在货架旁时，同一个键改成「放上去」，
-/// 放哪由玩家站的位置决定（见 RackController）；拿取同理，取离站位最近的那件。
+/// 只在货架触发区外投掷 —— 站在货架旁时，同一个键改成「放上去」：
+/// 按货架长轴从负向到正向依次落位（见 RackController）；拿取仍取离站位最近的那件。
 /// 叠放与取物本身由 GrabController 负责。
 /// </summary>
 [RequireComponent(typeof(GrabController))]
@@ -116,7 +116,7 @@ public class ThrowController : MonoBehaviour
         if (!grab.IsHolding) return;
 
         // 在货架触发区内：只做「放置」，不再投掷。
-        // 放在哪由玩家此刻站的位置决定（先算好落点，放得下才真正从手里取走）。
+        // 货架按长轴负向到正向找落点（先算好，放得下才真正从手里取走）。
         if (currentRack != null)
         {
             currentRack.TryPlaceFromHands(grab, transform.position);

@@ -8,9 +8,9 @@ using UnityEngine;
 /// 快递占几个单位看 GrabbableItem 的尺寸：小 = 1 / 中 = 2 / 大 = 3。
 /// 所以 3 个中（2+2+2=6）正好塞满，再也塞不进第 4 个或别的快递。
 ///
-/// 位置没有「先放哪头」的顺序，完全由玩家站位决定：
-///   放在哪 = 玩家放置时所站的位置，投影到货架长轴上落在第几格
-///   被挡住 = 自动挪到离站位最近的、够放的空档
+/// 放置固定从长轴负向（第 0 格）往正向依次找第一段够放的空档，
+/// 和玩家站位、放置先后无关：
+///   放在哪 = 从负向数起第一段够放的空档
 ///   拿哪件 = 离玩家站位最近的那件，而不是最后放的那件
 /// 快递两头都按整格对齐（占用区间居中），所以格子和格子之间不会重叠。
 /// 尺寸全部在世界空间量（Renderer / Collider 的 bounds），
@@ -223,17 +223,26 @@ public class RackController : MonoBehaviour
     }
 
     /// <summary>
-    /// 能不能放：这东西站在这个站位上能否找到空档。
-    /// 位置由 fromWorldPosition（玩家站位）决定，和之前放过什么无关。
+    /// 能不能放：从长轴负向往正向找，是否存在一段够放的空档。
+    /// fromWorldPosition 仅为兼容旧调用保留，不再影响落点。
     /// </summary>
     public bool CanPlace(Rigidbody rb, Vector3 fromWorldPosition) =>
-        TryResolveSlot(rb, fromWorldPosition, out _, out _);
+        TryResolveSlot(rb, out _, out _);
 
     // ---------- 放 ----------
-    /// <summary>把一件快递摆到货架上（位置由 fromWorldPosition 决定），成功返回 true</summary>
+    /// <summary>把一件快递摆到货架上（从负向数起第一处够放的空档），成功返回 true</summary>
     public bool Place(Rigidbody rb, Vector3 fromWorldPosition)
     {
-        if (!TryResolveSlot(rb, fromWorldPosition, out int first, out int units)) return false;
+        if (!TryResolveSlot(rb, out int first, out int units)) return false;
+
+        ApplyPlacement(rb, first, units);
+        return true;
+    }
+
+    /// <summary>预摆货物专用：按货物自身位置就近对齐，不走顺序放置</summary>
+    private bool PlaceNear(Rigidbody rb, Vector3 fromWorldPosition)
+    {
+        if (!TryResolveSlotNear(rb, fromWorldPosition, out int first, out int units)) return false;
 
         ApplyPlacement(rb, first, units);
         return true;
@@ -248,7 +257,7 @@ public class RackController : MonoBehaviour
         if (hands == null) return false;
 
         Rigidbody top = hands.TopBody;
-        if (!TryResolveSlot(top, fromWorldPosition, out int first, out int units)) return false;
+        if (!TryResolveSlot(top, out int first, out int units)) return false;
 
         Rigidbody rb = hands.Release();      // 从最上层取走
         if (rb == null) return false;
@@ -257,14 +266,14 @@ public class RackController : MonoBehaviour
         return true;
     }
 
-    /// <summary>预览：这件快递放在这个站位会落到哪（世界中心点 + 占用宽度）</summary>
+    /// <summary>预览：这件快递按负向到正向的顺序会落到哪（世界中心点 + 占用宽度）</summary>
     public bool TryPreviewSpot(Rigidbody rb, Vector3 fromWorldPosition,
                                out Vector3 worldCenter, out float length)
     {
         worldCenter = Vector3.zero;
         length = 0f;
 
-        if (!TryResolveSlot(rb, fromWorldPosition, out int first, out int units)) return false;
+        if (!TryResolveSlot(rb, out int first, out int units)) return false;
 
         float offset = (SlotOffset(first) + SlotOffset(first + units - 1)) * 0.5f;
         float height = MeasureAlong(rb, Vector3.up);
@@ -275,11 +284,10 @@ public class RackController : MonoBehaviour
     }
 
     /// <summary>
-    /// 按玩家站位算出「离他最近的可放位置」：
-    /// 先看站位的投影落在第几格，再从这一格往两边找第一段够放的空档。
+    /// 放置落点：从长轴负向（第 0 格）往正向扫，取第一段够放的空档。
+    /// 和玩家站位无关；从手里放东西、预览都走这里。
     /// </summary>
-    private bool TryResolveSlot(Rigidbody rb, Vector3 fromWorldPosition,
-                                out int first, out int units)
+    private bool TryResolveSlot(Rigidbody rb, out int first, out int units)
     {
         first = 0;
         units = 0;
@@ -288,6 +296,31 @@ public class RackController : MonoBehaviour
         units = UnitsFor(rb);
         int cap = Capacity;
         if (units <= 0 || units > cap) return false;    // 比整块板还宽
+
+        for (int i = 0; i <= cap - units; i++)
+        {
+            if (!AreSlotsFree(i, units)) continue;
+
+            first = i;
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// 按世界位置找最近落点：只给预摆货物登记用，保持原有的就近对齐行为。
+    /// </summary>
+    private bool TryResolveSlotNear(Rigidbody rb, Vector3 fromWorldPosition,
+                                    out int first, out int units)
+    {
+        first = 0;
+        units = 0;
+        if (rb == null) return false;
+
+        units = UnitsFor(rb);
+        int cap = Capacity;
+        if (units <= 0 || units > cap) return false;
 
         int want = WantedFirstSlot(fromWorldPosition, units);
 
@@ -312,7 +345,7 @@ public class RackController : MonoBehaviour
         return true;
     }
 
-    /// <summary>玩家站位对应的起始格：让这件快递占的格区间中心尽量正对玩家</summary>
+    /// <summary>给定世界位置对应的起始格：让占的格区间中心尽量正对那个位置（预摆登记用）</summary>
     private int WantedFirstSlot(Vector3 fromWorldPosition, int units)
     {
         float index = AlongRack(fromWorldPosition) / UnitWidth + (Capacity - 1) * 0.5f;
@@ -485,7 +518,7 @@ public class RackController : MonoBehaviour
         {
             if (SnapPrePlaced)
             {
-                if (!Place(rb, rb.transform.position))
+                if (!PlaceNear(rb, rb.transform.position))
                     Debug.LogWarning($"[Rack] 预摆的 {rb.name} 在这块货板上找不到空位，已跳过", this);
             }
             else
