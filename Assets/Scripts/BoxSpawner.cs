@@ -2,29 +2,50 @@ using System.Collections;
 using UnityEngine;
 
 /// <summary>
-/// ¿ìµİ³ö¿Ú£ºÎ»ÖÃÉÏÔ­ÓĞµÄÎïÌå±»Íæ¼ÒÄÃ×ß£¨Àë¿ª³öÉúµã£©ºó£¬
-/// µÈ´ı RespawnDelay Ãë£¬ÔÙËæ»úÉú³ÉÒ»¸ö Prefab¡£
-/// ÓÃ·¨£º¹ÒÔÚÒ»¸ö¿ÕÎïÌåÉÏ£¬°Ñ small / medium / large Èı¸ö Prefab ÍÏ½øÊı×é£¬
-/// ³¡¾°ÀïÕâ¸öÎ»ÖÃÔ¤ÏÈ°ÚÒ»¸ö box ×÷Îª"µÚÒ»¸ö"¡£
-/// ×¢Òâ£ºÖ»ÓĞ²¹»õÉú³ÉµÄĞÂ¿ìµİ²ÅËæ»ú¹¦ÄÜÀàĞÍ£¬³¡¾°ÀïÔ¤°ÚµÄ¿ìµİ±£³ÖÆÕÍ¨¡£
+/// å¿«é€’å‡ºå£ï¼šä½ç½®ä¸ŠåŸæœ‰çš„ç‰©ä½“è¢«ç©å®¶æ‹¿èµ°ï¼ˆç¦»å¼€å‡ºç”Ÿç‚¹ï¼‰åï¼Œ
+/// ç­‰å¾… RespawnDelay ç§’ï¼Œå†éšæœºç”Ÿæˆä¸€ä¸ª Prefabã€‚
+/// ç”¨æ³•ï¼šæŒ‚åœ¨ä¸€ä¸ªç©ºç‰©ä½“ä¸Šï¼ŒæŠŠ small / medium / large ä¸‰ä¸ª Prefab æ‹–è¿›æ•°ç»„ï¼Œ
+/// åœºæ™¯é‡Œè¿™ä¸ªä½ç½®é¢„å…ˆæ‘†ä¸€ä¸ª box ä½œä¸º"ç¬¬ä¸€ä¸ª"ã€‚
+/// æ³¨æ„ï¼šåªæœ‰è¡¥è´§ç”Ÿæˆçš„æ–°å¿«é€’æ‰éšæœºåŠŸèƒ½ç±»å‹ï¼Œåœºæ™¯é‡Œé¢„æ‘†çš„å¿«é€’ä¿æŒæ™®é€šã€‚
 /// </summary>
 public class BoxSpawner : MonoBehaviour
 {
-    [Header("Éú³É")]
-    [Tooltip("¿ÉËæ»úÉú³ÉµÄÔ¤ÖÆÌå£¨Ğ¡ / ÖĞ / ´ó£©")]
+    [Header("ç”Ÿæˆ")]
+    [Tooltip("å¯éšæœºç”Ÿæˆçš„é¢„åˆ¶ä½“æ± ï¼›å…·ä½“ç”Ÿæˆå“ªä¸ªå°ºå¯¸ç”±ä¸‹é¢çš„ SizeWeights å†³å®š")]
     public GameObject[] Prefabs;
 
-    [Tooltip("ÎïÌåÀë¿ª³öÉúµã¶àÔ¶Ëã±»ÄÃ×ß£¨Ã×£©")]
+    [Tooltip("ç‰©ä½“ç¦»å¼€å‡ºç”Ÿç‚¹å¤šè¿œç®—è¢«æ‹¿èµ°ï¼ˆç±³ï¼‰")]
     public float TakenDistance = 0.8f;
 
-    [Tooltip("±»ÄÃ×ß¶à¾Ãºó²¹»õ£¨Ãë£©")]
+    [Tooltip("è¢«æ‹¿èµ°å¤šä¹…åè¡¥è´§ï¼ˆç§’ï¼‰")]
     public float RespawnDelay = 2f;
 
-    [Header("¹¦ÄÜÀàĞÍËæ»ú£¨Ö»×÷ÓÃÓÚ²¹»õÉú³ÉµÄĞÂ¿ìµİ£©")]
-    [Tooltip("ĞÂÉú³ÉµÄ¿ìµİÊÇ·ñËæ»úÒ»¸ö¹¦ÄÜÀàĞÍ")]
+    [Header("å°ºå¯¸æƒé‡ï¼ˆè¡¥è´§ç”Ÿæˆæ—¶æŒ‰è¿™ä¸ªæ·å° / ä¸­ / å¤§ï¼‰")]
+    [Tooltip("å„å°ºå¯¸å‡ºç°çš„æƒé‡ï¼šä¸ç”¨å‡‘æ»¡ 100ï¼ŒæŒ‰æ¯”ä¾‹ç®—ï¼›å¡« 0 = æ°¸ä¸ç”Ÿæˆã€‚\n" +
+             "å°ºå¯¸å–è‡ª Prefabs é‡Œæ¯ä¸ªé¢„åˆ¶ä½“ä¸Šçš„ GrabbableItem.Sizeï¼›\n" +
+             "æ¸…ç©ºè¿™ä¸ªæ•°ç»„ = å›åˆ°åŸæ¥çš„ç­‰æ¦‚ç‡éšæœºã€‚")]
+    public SizeWeight[] SizeWeights = new SizeWeight[]
+    {
+        new SizeWeight { Size = GrabbableItem.ItemSize.Small,  Weight = 1f },
+        new SizeWeight { Size = GrabbableItem.ItemSize.Medium, Weight = 1f },
+        new SizeWeight { Size = GrabbableItem.ItemSize.Large,  Weight = 1f },
+    };
+
+    /// <summary>æƒé‡è¡¨çš„ä¸€é¡¹ï¼šæŸä¸ªå°ºå¯¸å‡ºç°å¤šå°‘æƒé‡</summary>
+    [System.Serializable]
+    public class SizeWeight
+    {
+        public GrabbableItem.ItemSize Size = GrabbableItem.ItemSize.Small;
+
+        [Min(0f)]
+        public float Weight = 1f;
+    }
+
+    [Header("åŠŸèƒ½ç±»å‹éšæœºï¼ˆåªä½œç”¨äºè¡¥è´§ç”Ÿæˆçš„æ–°å¿«é€’ï¼‰")]
+    [Tooltip("æ–°ç”Ÿæˆçš„å¿«é€’æ˜¯å¦éšæœºä¸€ä¸ªåŠŸèƒ½ç±»å‹")]
     public bool RandomizeFeature = true;
 
-    [Tooltip("¸÷¹¦ÄÜÀàĞÍ³öÏÖµÄÈ¨ÖØ£º²»ÓÃ´ÕÂú 100£¬°´±ÈÀıËã£»Ìî 0 = ÓÀ²»³öÏÖ")]
+    [Tooltip("å„åŠŸèƒ½ç±»å‹å‡ºç°çš„æƒé‡ï¼šä¸ç”¨å‡‘æ»¡ 100ï¼ŒæŒ‰æ¯”ä¾‹ç®—ï¼›å¡« 0 = æ°¸ä¸å‡ºç°")]
     public FeatureWeight[] FeatureWeights = new FeatureWeight[]
     {
         new FeatureWeight { Type = ParcelType.Normal,    Weight = 70f },
@@ -32,7 +53,7 @@ public class BoxSpawner : MonoBehaviour
         new FeatureWeight { Type = ParcelType.Explosive, Weight = 15f },
     };
 
-    /// <summary>È¨ÖØ±íµÄÒ»Ïî£ºÄ³¸öÀàĞÍ³öÏÖ¶àÉÙÈ¨ÖØ</summary>
+    /// <summary>æƒé‡è¡¨çš„ä¸€é¡¹ï¼šæŸä¸ªç±»å‹å‡ºç°å¤šå°‘æƒé‡</summary>
     [System.Serializable]
     public class FeatureWeight
     {
@@ -42,17 +63,17 @@ public class BoxSpawner : MonoBehaviour
         public float Weight = 1f;
     }
 
-    // µ±Ç°Õâ¸öÎ»ÖÃÉÏµÄÄÇÒ»¸ö
+    // å½“å‰è¿™ä¸ªä½ç½®ä¸Šçš„é‚£ä¸€ä¸ª
     private Transform current;
     private bool waiting;
 
     void Start()
     {
-        // ³¡¾°ÀïÔ¤ÏÈ°ÚºÃµÄÄÇ¸ö×÷ÎªµÚÒ»¸ö£¨²»Ëæ»ú¹¦ÄÜ£¬±£³ÖÆÕÍ¨£©
+        // åœºæ™¯é‡Œé¢„å…ˆæ‘†å¥½çš„é‚£ä¸ªä½œä¸ºç¬¬ä¸€ä¸ªï¼ˆä¸éšæœºåŠŸèƒ½ï¼Œä¿æŒæ™®é€šï¼‰
         current = transform.childCount > 0 ? transform.GetChild(0) : null;
 
         if (current != null)
-            current.SetParent(null, true);   // ÍÑÀë¸¸×Ó¹ØÏµ£¬µ«±£³ÖÊÀ½çÎ»ÖÃ
+            current.SetParent(null, true);   // è„±ç¦»çˆ¶å­å…³ç³»ï¼Œä½†ä¿æŒä¸–ç•Œä½ç½®
         else
             SpawnNow();
     }
@@ -61,7 +82,7 @@ public class BoxSpawner : MonoBehaviour
     {
         if (waiting) return;
 
-        // ±»ÄÃ×ß / ±»Ïú»Ù ¡ú ¿ªÊ¼²¹»õµ¹¼ÆÊ±
+        // è¢«æ‹¿èµ° / è¢«é”€æ¯ â†’ å¼€å§‹è¡¥è´§å€’è®¡æ—¶
         if (current == null || IsTaken(current))
         {
             current = null;
@@ -69,7 +90,7 @@ public class BoxSpawner : MonoBehaviour
         }
     }
 
-    /// <summary>Àë¿ª³öÉúµã³¬¹ıãĞÖµ¾ÍËã±»ÄÃ×ß£¨×¥Æğ¡¢ÈÓµô¶¼»á´¥·¢£©</summary>
+    /// <summary>ç¦»å¼€å‡ºç”Ÿç‚¹è¶…è¿‡é˜ˆå€¼å°±ç®—è¢«æ‹¿èµ°ï¼ˆæŠ“èµ·ã€æ‰”æ‰éƒ½ä¼šè§¦å‘ï¼‰</summary>
     private bool IsTaken(Transform t)
     {
         return Vector3.Distance(t.position, transform.position) > TakenDistance;
@@ -81,7 +102,7 @@ public class BoxSpawner : MonoBehaviour
 
         yield return new WaitForSeconds(RespawnDelay);
 
-        // ³öÉúµã±»±ğµÄ¶«Î÷Õ¼×ÅÊ±ÏÈµÈ×Å£¬±ÜÃâµşÔÚÒ»Æğ
+        // å‡ºç”Ÿç‚¹è¢«åˆ«çš„ä¸œè¥¿å ç€æ—¶å…ˆç­‰ç€ï¼Œé¿å…å åœ¨ä¸€èµ·
         while (!IsSpotFree())
             yield return null;
 
@@ -91,32 +112,111 @@ public class BoxSpawner : MonoBehaviour
 
     private void SpawnNow()
     {
-        if (Prefabs == null || Prefabs.Length == 0) return;
+        GameObject prefab = PickPrefab();
+        if (prefab == null) return;
 
-        GameObject prefab = Prefabs[Random.Range(0, Prefabs.Length)];
         GameObject go = Instantiate(prefab, transform.position, transform.rotation);
 
-        // ³ß´çÒÑ¾­Ëæ»úºÃÁË£¬ÕâÀïÔÙËæ»úÒ»¸ö¹¦ÄÜÀàĞÍÌùÉÏÈ¥
+        // å°ºå¯¸å·²ç»éšæœºå¥½äº†ï¼Œè¿™é‡Œå†éšæœºä¸€ä¸ªåŠŸèƒ½ç±»å‹è´´ä¸Šå»
         if (RandomizeFeature) ApplyRandomFeature(go);
 
-        // ²»Éè¸¸ÎïÌå£º±»ÄÃ×ßºó²»»áÁôÏÂ¹ÒÔÚ³ö¿ÚÏÂµÄÆæ¹Ö²ã¼¶
+        // ä¸è®¾çˆ¶ç‰©ä½“ï¼šè¢«æ‹¿èµ°åä¸ä¼šç•™ä¸‹æŒ‚åœ¨å‡ºå£ä¸‹çš„å¥‡æ€ªå±‚çº§
         current = go.transform;
     }
 
-    // ---------- ¹¦ÄÜÀàĞÍ ----------
-    /// <summary>°´È¨ÖØËæ»úÒ»¸öÀàĞÍ£¬²¢Ğ´µ½¿ìµİµÄ ParcelFeature ÉÏ</summary>
+    // ---------- å°ºå¯¸ ----------
+    /// <summary>æŒ‰ SizeWeights æ·ä¸€ä¸ªå°ºå¯¸ï¼Œå†ä» Prefabs é‡ŒæŒ‘åŒå°ºå¯¸çš„é¢„åˆ¶ä½“</summary>
+    private GameObject PickPrefab()
+    {
+        if (Prefabs == null || Prefabs.Length == 0) return null;
+
+        // æƒé‡è¡¨ä¸ºç©º / å…¨æ˜¯ 0 â†’ ä¿æŒåŸæ¥çš„ç­‰æ¦‚ç‡éšæœº
+        GrabbableItem.ItemSize target;
+        if (!RollSize(out target))
+            return Prefabs[Random.Range(0, Prefabs.Length)];
+
+        int matchCount = 0;
+        for (int i = 0; i < Prefabs.Length; i++)
+        {
+            if (GetPrefabSize(Prefabs[i]) == target) matchCount++;
+        }
+
+        if (matchCount == 0)
+        {
+            Debug.LogWarning(
+                $"[BoxSpawner] Prefabs é‡Œæ²¡æœ‰å°ºå¯¸ä¸º {target} çš„é¢„åˆ¶ä½“ï¼Œé€€å›ç­‰æ¦‚ç‡éšæœº", this);
+            return Prefabs[Random.Range(0, Prefabs.Length)];
+        }
+
+        int pick = Random.Range(0, matchCount);
+        for (int i = 0; i < Prefabs.Length; i++)
+        {
+            if (GetPrefabSize(Prefabs[i]) != target) continue;
+
+            if (pick == 0) return Prefabs[i];
+            pick--;
+        }
+
+        return Prefabs[Random.Range(0, Prefabs.Length)];   // å…œåº•
+    }
+
+    /// <summary>æŒ‰æƒé‡è¡¨æ·ä¸€æ¬¡å°ºå¯¸ï¼›æƒé‡è¡¨ä¸å¯ç”¨æˆ–æ€»æƒé‡ä¸º 0 æ—¶è¿”å› false</summary>
+    private bool RollSize(out GrabbableItem.ItemSize size)
+    {
+        size = GrabbableItem.ItemSize.Small;
+
+        if (SizeWeights == null || SizeWeights.Length == 0) return false;
+
+        float total = 0f;
+        for (int i = 0; i < SizeWeights.Length; i++)
+        {
+            if (SizeWeights[i] != null && SizeWeights[i].Weight > 0f)
+                total += SizeWeights[i].Weight;
+        }
+        if (total <= 0f) return false;
+
+        float r = Random.Range(0f, total);
+        for (int i = 0; i < SizeWeights.Length; i++)
+        {
+            SizeWeight w = SizeWeights[i];
+            if (w == null || w.Weight <= 0f) continue;
+
+            if (r < w.Weight)
+            {
+                size = w.Size;
+                return true;
+            }
+            r -= w.Weight;
+        }
+
+        return false;   // æµ®ç‚¹å…œåº•
+    }
+
+    /// <summary>è¯»é¢„åˆ¶ä½“ä¸Šçš„å°ºå¯¸ï¼›æ²¡æŒ‚ GrabbableItem æ—¶è¿”å› null</summary>
+    private static GrabbableItem.ItemSize? GetPrefabSize(GameObject prefab)
+    {
+        if (prefab == null) return null;
+
+        GrabbableItem item = prefab.GetComponent<GrabbableItem>();
+        if (item == null) item = prefab.GetComponentInChildren<GrabbableItem>(true);
+
+        return item != null ? item.Size : (GrabbableItem.ItemSize?)null;
+    }
+
+    // ---------- åŠŸèƒ½ç±»å‹ ----------
+    /// <summary>æŒ‰æƒé‡éšæœºä¸€ä¸ªç±»å‹ï¼Œå¹¶å†™åˆ°å¿«é€’çš„ ParcelFeature ä¸Š</summary>
     private void ApplyRandomFeature(GameObject go)
     {
         if (go == null) return;
 
-        // prefab ÉÏÃ»¹Ò¾ÍÔËĞĞÊ±²¹Ò»¸ö£¨¹ÒÁËÒ²ÄÜÕı³£ÅÜ£©
+        // prefab ä¸Šæ²¡æŒ‚å°±è¿è¡Œæ—¶è¡¥ä¸€ä¸ªï¼ˆæŒ‚äº†ä¹Ÿèƒ½æ­£å¸¸è·‘ï¼‰
         ParcelFeature feature = go.GetComponent<ParcelFeature>();
         if (feature == null) feature = go.AddComponent<ParcelFeature>();
 
         feature.SetType(RollType());
     }
 
-    /// <summary>°´È¨ÖØ±íÖÀÒ»´ÎÀàĞÍ</summary>
+    /// <summary>æŒ‰æƒé‡è¡¨æ·ä¸€æ¬¡ç±»å‹</summary>
     private ParcelType RollType()
     {
         if (FeatureWeights == null || FeatureWeights.Length == 0)
@@ -140,7 +240,7 @@ public class BoxSpawner : MonoBehaviour
             r -= w.Weight;
         }
 
-        return ParcelType.Normal;   // ¸¡µã¶µµ×
+        return ParcelType.Normal;   // æµ®ç‚¹å…œåº•
     }
 
     private bool IsSpotFree()
@@ -150,7 +250,7 @@ public class BoxSpawner : MonoBehaviour
 
         foreach (Collider c in hits)
         {
-            if (c.attachedRigidbody != null) return false;   // ÓĞ¿É¶¯ÎïÌåÕ¼Î»
+            if (c.attachedRigidbody != null) return false;   // æœ‰å¯åŠ¨ç‰©ä½“å ä½
         }
 
         return true;

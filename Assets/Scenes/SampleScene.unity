@@ -2441,6 +2441,13 @@ MonoBehaviour:
   - {fileID: 882828079525837441, guid: fac1672bf35ad6f418411a15e7a24e21, type: 3}
   TakenDistance: 0.31
   RespawnDelay: 2
+  SizeWeights:
+  - Size: 1
+    Weight: 4
+  - Size: 2
+    Weight: 4
+  - Size: 3
+    Weight: 2
   RandomizeFeature: 1
   FeatureWeights:
   - Type: 0
@@ -3084,6 +3091,13 @@ MonoBehaviour:
   - {fileID: 882828079525837441, guid: fac1672bf35ad6f418411a15e7a24e21, type: 3}
   TakenDistance: 0.31
   RespawnDelay: 2
+  SizeWeights:
+  - Size: 1
+    Weight: 4
+  - Size: 2
+    Weight: 4
+  - Size: 3
+    Weight: 2
   RandomizeFeature: 1
   FeatureWeights:
   - Type: 0
