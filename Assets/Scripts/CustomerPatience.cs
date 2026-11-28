@@ -85,7 +85,7 @@ public class CustomerPatience : MonoBehaviour
         if (Patience <= 0f) OnDepleted();
     }
 
-    /// <summary>由 GiveControl 在交付判定后调用：放错直接扣一格</summary>
+    /// <summary>由 CustomerOrder 在交付判定后调用：放错直接扣一格</summary>
     public void NotifyDelivered(bool correct)
     {
         if (correct)

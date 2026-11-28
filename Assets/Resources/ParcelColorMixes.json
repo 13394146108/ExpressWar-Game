@@ -1,0 +1,156 @@
+{
+  "mixes": [
+    {
+      "id": "Small Red + Small Red",
+      "colors": ["Red", "Red"],
+      "sizes": [1, 1],
+      "result": { "r": 255, "g": 0, "b": 0 }
+    },
+    {
+      "id": "Small Red + Small Green",
+      "colors": ["Red", "Green"],
+      "sizes": [1, 1],
+      "result": { "r": 128, "g": 128, "b": 0 }
+    },
+    {
+      "id": "Small Red + Small Blue",
+      "colors": ["Red", "Blue"],
+      "sizes": [1, 1],
+      "result": { "r": 128, "g": 0, "b": 128 }
+    },
+    {
+      "id": "Small Green + Small Green",
+      "colors": ["Green", "Green"],
+      "sizes": [1, 1],
+      "result": { "r": 0, "g": 255, "b": 0 }
+    },
+    {
+      "id": "Small Green + Small Blue",
+      "colors": ["Green", "Blue"],
+      "sizes": [1, 1],
+      "result": { "r": 0, "g": 128, "b": 128 }
+    },
+    {
+      "id": "Small Blue + Small Blue",
+      "colors": ["Blue", "Blue"],
+      "sizes": [1, 1],
+      "result": { "r": 0, "g": 0, "b": 255 }
+    },
+
+    {
+      "id": "Small Red + Small Red + Small Red",
+      "colors": ["Red", "Red", "Red"],
+      "sizes": [1, 1, 1],
+      "result": { "r": 255, "g": 0, "b": 0 }
+    },
+    {
+      "id": "Small Red + Small Red + Small Green",
+      "colors": ["Red", "Red", "Green"],
+      "sizes": [1, 1, 1],
+      "result": { "r": 170, "g": 85, "b": 0 }
+    },
+    {
+      "id": "Small Red + Small Red + Small Blue",
+      "colors": ["Red", "Red", "Blue"],
+      "sizes": [1, 1, 1],
+      "result": { "r": 170, "g": 0, "b": 85 }
+    },
+    {
+      "id": "Small Red + Small Green + Small Green",
+      "colors": ["Red", "Green", "Green"],
+      "sizes": [1, 1, 1],
+      "result": { "r": 85, "g": 170, "b": 0 }
+    },
+    {
+      "id": "Small Red + Small Green + Small Blue",
+      "colors": ["Red", "Green", "Blue"],
+      "sizes": [1, 1, 1],
+      "result": { "r": 85, "g": 85, "b": 85 }
+    },
+    {
+      "id": "Small Red + Small Blue + Small Blue",
+      "colors": ["Red", "Blue", "Blue"],
+      "sizes": [1, 1, 1],
+      "result": { "r": 85, "g": 0, "b": 170 }
+    },
+    {
+      "id": "Small Green + Small Green + Small Green",
+      "colors": ["Green", "Green", "Green"],
+      "sizes": [1, 1, 1],
+      "result": { "r": 0, "g": 255, "b": 0 }
+    },
+    {
+      "id": "Small Green + Small Green + Small Blue",
+      "colors": ["Green", "Green", "Blue"],
+      "sizes": [1, 1, 1],
+      "result": { "r": 0, "g": 170, "b": 85 }
+    },
+    {
+      "id": "Small Green + Small Blue + Small Blue",
+      "colors": ["Green", "Blue", "Blue"],
+      "sizes": [1, 1, 1],
+      "result": { "r": 0, "g": 85, "b": 170 }
+    },
+    {
+      "id": "Small Blue + Small Blue + Small Blue",
+      "colors": ["Blue", "Blue", "Blue"],
+      "sizes": [1, 1, 1],
+      "result": { "r": 0, "g": 0, "b": 255 }
+    },
+
+    {
+      "id": "Small Red + Medium Red",
+      "colors": ["Red", "Red"],
+      "sizes": [1, 2],
+      "result": { "r": 255, "g": 0, "b": 0 }
+    },
+    {
+      "id": "Small Red + Medium Green",
+      "colors": ["Red", "Green"],
+      "sizes": [1, 2],
+      "result": { "r": 85, "g": 170, "b": 0 }
+    },
+    {
+      "id": "Small Red + Medium Blue",
+      "colors": ["Red", "Blue"],
+      "sizes": [1, 2],
+      "result": { "r": 85, "g": 0, "b": 170 }
+    },
+    {
+      "id": "Small Green + Medium Red",
+      "colors": ["Green", "Red"],
+      "sizes": [1, 2],
+      "result": { "r": 170, "g": 85, "b": 0 }
+    },
+    {
+      "id": "Small Green + Medium Green",
+      "colors": ["Green", "Green"],
+      "sizes": [1, 2],
+      "result": { "r": 0, "g": 255, "b": 0 }
+    },
+    {
+      "id": "Small Green + Medium Blue",
+      "colors": ["Green", "Blue"],
+      "sizes": [1, 2],
+      "result": { "r": 0, "g": 85, "b": 170 }
+    },
+    {
+      "id": "Small Blue + Medium Red",
+      "colors": ["Blue", "Red"],
+      "sizes": [1, 2],
+      "result": { "r": 170, "g": 0, "b": 85 }
+    },
+    {
+      "id": "Small Blue + Medium Green",
+      "colors": ["Blue", "Green"],
+      "sizes": [1, 2],
+      "result": { "r": 0, "g": 170, "b": 85 }
+    },
+    {
+      "id": "Small Blue + Medium Blue",
+      "colors": ["Blue", "Blue"],
+      "sizes": [1, 2],
+      "result": { "r": 0, "g": 0, "b": 255 }
+    }
+  ]
+}

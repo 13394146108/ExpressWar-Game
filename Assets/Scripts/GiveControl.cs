@@ -40,7 +40,6 @@ public class GiveControl : MonoBehaviour
 
     private GrabController hands;
     private Collider tableCollider;
-    private CustomerPatience patience;
 
     /// <summary>桌上是不是已经有快递了</summary>
     public bool HasPlaced => PlacedBody != null;
@@ -49,6 +48,7 @@ public class GiveControl : MonoBehaviour
     {
         hands = GetComponent<GrabController>();
         ResolveTable();
+        ResolveCustomer();
     }
 
     /// <summary>
@@ -78,6 +78,10 @@ public class GiveControl : MonoBehaviour
         Rigidbody rb = hands.Release();         // 取出叠在最上层的那件
         if (rb == null) return false;
 
+        // 桌面上已经有实体快递了，先隐藏透明预览
+        ResolveCustomer();
+        if (Customer != null) Customer.SetGhostVisible(false);
+
         PlaceOnTable(rb);
         Deliver(rb);      // 判定对错 → 稍后消失 → 顾客刷新需求
         return true;
@@ -91,6 +95,9 @@ public class GiveControl : MonoBehaviour
         Rigidbody rb = PlacedBody;
         PlacedBody = null;
         SetGrabbable(rb, true);
+
+        ResolveCustomer();
+        if (Customer != null) Customer.SetGhostVisible(true);
     }
 
     // ---------- 放置 ----------
@@ -129,7 +136,7 @@ public class GiveControl : MonoBehaviour
     /// <summary>判断这件快递对不对，并安排它消失 + 刷新顾客需求</summary>
     private void Deliver(Rigidbody rb)
     {
-        if (Customer == null) Customer = FindObjectOfType<CustomerOrder>();
+        ResolveCustomer();
 
         if (Customer == null)
         {
@@ -140,13 +147,11 @@ public class GiveControl : MonoBehaviour
 
         ParcelOrder order = Customer.CurrentOrder;
         int orderVersion = Customer.Version;
-        bool correct = IsMatch(rb, order);
+
+        // 判定和耐心条更新都交给 CustomerOrder
+        bool correct = Customer.JudgeDelivery(rb);
 
         Delivered?.Invoke(correct, order);
-
-        // 通知顾客的耐心条：错误降一格（正确默认不变）
-        if (patience == null) patience = Customer.GetComponent<CustomerPatience>();
-        if (patience != null) patience.NotifyDelivered(correct);
 
         Debug.Log(correct
             ? $"[Give] 交付正确：{Describe(rb)}"
@@ -171,32 +176,21 @@ public class GiveControl : MonoBehaviour
         // 送错不换需求；等待期间如果顾客已经因为耐心耗尽换过需求，也不要重复刷新
         if (correct && Customer != null && Customer.Version == orderVersion)
             Customer.RollNewOrder();
+
+        // 桌子空了，恢复桌面透明预览（正确时这里已经是新订单）
+        if (Customer != null) Customer.SetGhostVisible(true);
     }
 
-    /// <summary>尺寸和颜色是否都符合顾客需求</summary>
-    private static bool IsMatch(Rigidbody rb, ParcelOrder order)
-    {
-        GrabbableItem item = rb.GetComponentInParent<GrabbableItem>();
-        if (item == null) return false;
-
-        return order.Size == ToOrderSize(item.Size)
-            && order.ColorMask == ParcelColor.GetColorMask(rb);
-    }
-
-    /// <summary>把快递转成显示文字，例如 "Large Red+Blue"</summary>
+    /// <summary>把快递转成调试文字，例如 "Large #5500AA"</summary>
     private static string Describe(Rigidbody rb)
     {
         GrabbableItem item = rb.GetComponentInParent<GrabbableItem>();
-        OrderSize size = item != null ? ToOrderSize(item.Size) : OrderSize.Small;
+        OrderSize size = item != null ? CustomerOrder.ToOrderSize(item.Size) : OrderSize.Small;
 
-        return new ParcelOrder(size, ParcelColor.GetColorMask(rb)).DisplayText;
-    }
+        ParcelFeature feature = rb.GetComponentInChildren<ParcelFeature>(true);
+        Color color = feature != null ? feature.CurrentColor : Color.green;
 
-    private static OrderSize ToOrderSize(GrabbableItem.ItemSize size)
-    {
-        if (size == GrabbableItem.ItemSize.Medium) return OrderSize.Medium;
-        if (size == GrabbableItem.ItemSize.Large) return OrderSize.Large;
-        return OrderSize.Small;
+        return new ParcelOrder(size, color).DisplayText;
     }
 
     /// <summary>只保留「可抓」这一种状态切换：kinematic + 去掉 CanGrab 标签</summary>
@@ -226,6 +220,11 @@ public class GiveControl : MonoBehaviour
 
         GameObject go = GameObject.Find("Give");
         if (go != null) Table = go.transform;
+    }
+
+    private void ResolveCustomer()
+    {
+        if (Customer == null) Customer = FindObjectOfType<CustomerOrder>();
     }
 
     /// <summary>玩家是否站在桌子旁边（只比较水平距离）</summary>

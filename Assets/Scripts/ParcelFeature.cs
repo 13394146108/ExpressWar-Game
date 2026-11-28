@@ -1,87 +1,108 @@
 using UnityEngine;
 
-/// <summary>¿ìµİµÄ¹¦ÄÜÀàĞÍ</summary>
+/// <summary>å¿«é€’çš„åŠŸèƒ½ç±»å‹</summary>
 public enum ParcelType
 {
-    Normal = 0,     // ÆÕÍ¨£ºÏÖÔÚµÄ»ÆÉ«¿ìµİ£¬Ã»ÓĞ¹¦ÄÜ
-    Fragile = 1,    // Ò×Ëé£ºÀ¶É«£¬¹¦ÄÜºóĞø²¹
-    Explosive = 2,  // Ò×±¬£ººìÉ«£¬¹¦ÄÜºóĞø²¹
+    Normal = 0,     // æ™®é€šï¼šç»¿è‰² (0, 255, 0)
+    Fragile = 1,    // æ˜“ç¢ï¼šè“è‰² (0, 0, 255)
+    Explosive = 2,  // æ˜“çˆ†ï¼šçº¢è‰² (255, 0, 0)
 }
 
 /// <summary>
-/// ¸ø¿ìµİ¹ÒÉÏ¡¸¹¦ÄÜÀàĞÍ¡¹¡£¹ÒÔÚ¿ìµİ¸ù½ÚµãÉÏ£¨ºÍ GrabbableItem Í¬Ò»¸öÎïÌå£©¡£
-/// ³ß´çËæ»úÓÉ BoxSpawner ¸ºÔğ£¬ÕâÀïÖ»¹Ü¹¦ÄÜÀàĞÍºÍËüµÄ±íÏÖ¡£
+/// ç»™å¿«é€’æŒ‚ä¸Šã€ŒåŠŸèƒ½ç±»å‹ã€å’Œé¢œè‰²ã€‚æŒ‚åœ¨å¿«é€’æ ¹èŠ‚ç‚¹ä¸Šï¼ˆå’Œ GrabbableItem åŒä¸€ä¸ªç‰©ä½“ï¼‰ã€‚
+/// æ™®é€š / æ˜“ç¢ / æ˜“çˆ†åˆ†åˆ«å¯¹åº”ç»¿ / è“ / çº¢ï¼›
+/// Compose åˆæˆå‡ºæ¥çš„å¿«é€’ä¼šé€šè¿‡ SetMixedColor è¦†ç›–æˆæ··åˆåçš„é¢œè‰²ã€‚
 /// </summary>
 [DisallowMultipleComponent]
 public class ParcelFeature : MonoBehaviour
 {
-    [Header("¹¦ÄÜÀàĞÍ")]
+    private static readonly Color RedColor = new Color(1f, 0f, 0f);     // 255, 0, 0
+    private static readonly Color GreenColor = new Color(0f, 1f, 0f);   // 0, 255, 0
+    private static readonly Color BlueColor = new Color(0f, 0f, 1f);    // 0, 0, 255
+
+    [Header("åŠŸèƒ½ç±»å‹")]
     [SerializeField] private ParcelType type = ParcelType.Normal;
 
     public ParcelType Type => type;
     public bool IsSpecial => type != ParcelType.Normal;
 
-    [Header("Íâ¹Û£¨Ö»¶ÔÒ×Ëé / Ò×±¬ÉúĞ§£¬ÆÕÍ¨±£³ÖÔ­²ÄÖÊ£©")]
-    [SerializeField] private Color fragileColor = new Color(0.15f, 0.45f, 1f);   // À¶
-    [SerializeField] private Color explosiveColor = new Color(1f, 0.15f, 0.15f); // ºì
+    private bool hasMixedColor;
+    private Color mixedColor;
 
-    [Header("Ò×Ëé£¨Ô¤Áô£ºÏÈÌî 0 ±íÊ¾²»ÅĞ¶¨£¬µÈÄãÒª×ö¹¦ÄÜÊ±ÔÙÅäÊıÖµ£©")]
-    [Tooltip("ÊÜµ½³¬¹ıÕâ¸ö³åÁ¿¾ÍÅĞ¶¨Îª¡¸Ë¤»µ¡¹")]
+    /// <summary>å½“å‰å®é™…é¢œè‰²ï¼šæ··åˆè¿‡çš„å¿«é€’ä¼˜å…ˆç”¨æ··åˆè‰²ï¼Œå¦åˆ™æŒ‰çº¢/ç»¿/è“ç±»å‹å–è‰²</summary>
+    public Color CurrentColor
+    {
+        get
+        {
+            if (hasMixedColor) return mixedColor;
+            if (type == ParcelType.Fragile) return BlueColor;
+            if (type == ParcelType.Explosive) return RedColor;
+            return GreenColor;
+        }
+    }
+
+    /// <summary>æ˜¯å¦å·²ç»è¢« Compose åˆ·æˆæ··åˆè‰²ï¼ˆç”¨äºåˆ¤æ–­è¿˜èƒ½ä¸èƒ½æŸ¥çº¯è‰²æ··åˆè¡¨ï¼‰</summary>
+    public bool HasMixedColor => hasMixedColor;
+
+    [Header("æ˜“ç¢ï¼ˆé¢„ç•™ï¼šå…ˆå¡« 0 è¡¨ç¤ºä¸åˆ¤å®šï¼Œç­‰ä½ è¦åšåŠŸèƒ½æ—¶å†é…æ•°å€¼ï¼‰")]
+    [Tooltip("å—åˆ°è¶…è¿‡è¿™ä¸ªå†²é‡å°±åˆ¤å®šä¸ºã€Œæ‘”åã€")]
     [Min(0f)][SerializeField] private float fragileImpulseThreshold = 0f;
 
-    [Header("Ò×±¬£¨Ô¤Áô£©")]
-    [Tooltip("ÊÜµ½³¬¹ıÕâ¸ö³åÁ¿¾ÍÅĞ¶¨Îª¡¸Òı±¬¡¹")]
+    [Header("æ˜“çˆ†ï¼ˆé¢„ç•™ï¼‰")]
+    [Tooltip("å—åˆ°è¶…è¿‡è¿™ä¸ªå†²é‡å°±åˆ¤å®šä¸ºã€Œå¼•çˆ†ã€")]
     [Min(0f)][SerializeField] private float explosiveImpulseThreshold = 0f;
 
-    [Tooltip("±¬Õ¨Ó°Ïì°ë¾¶£¨Ã×£©")]
+    [Tooltip("çˆ†ç‚¸å½±å“åŠå¾„ï¼ˆç±³ï¼‰")]
     [Min(0f)][SerializeField] private float explosiveRadius = 2f;
 
-    [Tooltip("±¬Õ¨ÍÆÁ¦")]
+    [Tooltip("çˆ†ç‚¸æ¨åŠ›")]
     [Min(0f)][SerializeField] private float explosiveForce = 6f;
 
-    private static readonly int ColorId = Shader.PropertyToID("_Color");     // ÄÚÖÃ¹ÜÏß Standard
-    private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor"); // URP ¼æÈİÓÃ
+    private static readonly int ColorId = Shader.PropertyToID("_Color");     // å†…ç½®ç®¡çº¿ Standard
+    private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor"); // URP å…¼å®¹ç”¨
 
     void Start()
     {
-        // Ò²ÔÚÕâÀïË¢Ò»´Î£ºÈç¹û×é¼şÊÇÖ±½Ó¹ÒÔÚ prefab ÉÏ²¢ÔÚ Inspector ÀïÅäÁËÀàĞÍ£¬
-        // ÔËĞĞÆğÀ´Ò²»áÕıÈ·È¾É«
+        // ä¹Ÿåœ¨è¿™é‡Œåˆ·ä¸€æ¬¡ï¼šå¦‚æœç»„ä»¶æ˜¯ç›´æ¥æŒ‚åœ¨ prefab ä¸Šå¹¶åœ¨ Inspector é‡Œé…äº†ç±»å‹ï¼Œ
+        // è¿è¡Œèµ·æ¥ä¹Ÿä¼šæ­£ç¡®æŸ“è‰²
         ApplyVisual();
     }
 
-    /// <summary>ÓÉ BoxSpawner ÔÚÉú³ÉÊ±µ÷ÓÃ£ºÉè¶¨¹¦ÄÜÀàĞÍ²¢Á¢¿Ì¸üĞÂÍâ¹Û</summary>
+    /// <summary>ç”± BoxSpawner åœ¨ç”Ÿæˆæ—¶è°ƒç”¨ï¼šè®¾å®šåŠŸèƒ½ç±»å‹å¹¶ç«‹åˆ»æ›´æ–°å¤–è§‚</summary>
     public void SetType(ParcelType newType)
     {
         type = newType;
         ApplyVisual();
     }
 
+    /// <summary>ç”± Compose è°ƒç”¨ï¼šç»™åˆæˆç»“æœåˆ·ä¸Šæ··åˆå‡ºæ¥çš„é¢œè‰²</summary>
+    public void SetMixedColor(Color color)
+    {
+        hasMixedColor = true;
+        mixedColor = color;
+        ApplyVisual();
+    }
+
     private void ApplyVisual()
     {
-        Color? tint = null;
-        if (type == ParcelType.Fragile) tint = fragileColor;
-        else if (type == ParcelType.Explosive) tint = explosiveColor;
-
+        Color tint = CurrentColor;
         MaterialPropertyBlock block = new MaterialPropertyBlock();
 
         foreach (Renderer r in GetComponentsInChildren<Renderer>(true))
         {
             if (r == null) continue;
 
-            block.Clear();                 // ÆÕÍ¨ÀàĞÍ => ¿Õ block => »Ö¸´ box.mat Ô­É«
-            if (tint.HasValue)
-            {
-                block.SetColor(ColorId, tint.Value);
-                block.SetColor(BaseColorId, tint.Value);
-            }
+            block.Clear();
+            block.SetColor(ColorId, tint);
+            block.SetColor(BaseColorId, tint);
             r.SetPropertyBlock(block);
         }
     }
 
-    //// ---------- ¹¦ÄÜ¹³×Ó£¨ÏÖÔÚÊÇ¿Õ¿Ç£¬ºóÃæÍùÀïÌî£© ----------
+    //// ---------- åŠŸèƒ½é’©å­ï¼ˆç°åœ¨æ˜¯ç©ºå£³ï¼Œåé¢å¾€é‡Œå¡«ï¼‰ ----------
     //void OnCollisionEnter(Collision collision)
     //{
-    //    if (type == ParcelType.Normal) return;      // ÆÕÍ¨¿ìµİ²»²ÎÓëÅĞ¶¨
+    //    if (type == ParcelType.Normal) return;      // æ™®é€šå¿«é€’ä¸å‚ä¸åˆ¤å®š
 
     //    float impulse = collision.impulse.magnitude;
 
@@ -89,17 +110,17 @@ public class ParcelFeature : MonoBehaviour
     //    else if (type == ParcelType.Explosive) OnExplosiveImpact(impulse, collision);
     //}
 
-    ///// <summary>Ò×Ëé£ºË¤/ÔÒµÄ³åÁ¿³¬¹ıãĞÖµÊ±´¥·¢</summary>
+    ///// <summary>æ˜“ç¢ï¼šæ‘”/ç ¸çš„å†²é‡è¶…è¿‡é˜ˆå€¼æ—¶è§¦å‘</summary>
     //private void OnFragileImpact(float impulse, Collision collision)
     //{
-    //    if (fragileImpulseThreshold <= 0f) return;  // »¹Ã»ÅäãĞÖµ ¡ú ÔİÊ±²»´¥·¢
+    //    if (fragileImpulseThreshold <= 0f) return;  // è¿˜æ²¡é…é˜ˆå€¼ â†’ æš‚æ—¶ä¸è§¦å‘
     //    if (impulse < fragileImpulseThreshold) return;
 
-    //    // TODO: ËéÁÑ±íÏÖ£¨»»ÆÆËéÄ£ĞÍ / Éú³ÉËéÆ¬ / ²¥·ÅÒôĞ§£©¡¢¸øÍ¶·Å·½¿Û·ÖµÈ
-    //    Debug.Log($"[ParcelFeature] Ò×Ëé¿ìµİË¤»µÁË£¬³åÁ¿ {impulse:F1}", this);
+    //    // TODO: ç¢è£‚è¡¨ç°ï¼ˆæ¢ç ´ç¢æ¨¡å‹ / ç”Ÿæˆç¢ç‰‡ / æ’­æ”¾éŸ³æ•ˆï¼‰ã€ç»™æŠ•æ”¾æ–¹æ‰£åˆ†ç­‰
+    //    Debug.Log($"[ParcelFeature] æ˜“ç¢å¿«é€’æ‘”åäº†ï¼Œå†²é‡ {impulse:F1}", this);
     //}
 
-    ///// <summary>Ò×±¬£º³åÁ¿³¬¹ıãĞÖµÊ±Òı±¬</summary>
+    ///// <summary>æ˜“çˆ†ï¼šå†²é‡è¶…è¿‡é˜ˆå€¼æ—¶å¼•çˆ†</summary>
     //private void OnExplosiveImpact(float impulse, Collision collision)
     //{
     //    if (explosiveImpulseThreshold <= 0f) return;
@@ -108,7 +129,7 @@ public class ParcelFeature : MonoBehaviour
     //    Explode();
     //}
 
-    ///// <summary>±¬Õ¨£ºÏÈ×ö³ÉÍ¨ÓÃ°æ±¾£¬ºóĞøÔÙÏ¸»¯ÉËº¦/µÃ·Ö</summary>
+    ///// <summary>çˆ†ç‚¸ï¼šå…ˆåšæˆé€šç”¨ç‰ˆæœ¬ï¼Œåç»­å†ç»†åŒ–ä¼¤å®³/å¾—åˆ†</summary>
     //public void Explode()
     //{
     //    Collider[] hits = Physics.OverlapSphere(
@@ -117,13 +138,13 @@ public class ParcelFeature : MonoBehaviour
     //    foreach (Collider c in hits)
     //    {
     //        Rigidbody rb = c.attachedRigidbody;
-    //        if (rb == null || rb.isKinematic) continue;      // ²»ÍÆ¾²Ö¹/±»ÄÃ×ÅµÄÎïÌå
-    //        if (rb == GetComponent<Rigidbody>()) continue;   // ²»ÍÆ×Ô¼º
+    //        if (rb == null || rb.isKinematic) continue;      // ä¸æ¨é™æ­¢/è¢«æ‹¿ç€çš„ç‰©ä½“
+    //        if (rb == GetComponent<Rigidbody>()) continue;   // ä¸æ¨è‡ªå·±
 
     //        rb.AddExplosionForce(explosiveForce, transform.position, explosiveRadius);
     //    }
 
-    //    // TODO: ±¬Õ¨ÌØĞ§ / ÒôĞ§ / Ïú»Ù×ÔÉí / ½áËã·ÖÊı
-    //    Debug.Log("[ParcelFeature] Ò×±¬¿ìµİ±¬Õ¨", this);
+    //    // TODO: çˆ†ç‚¸ç‰¹æ•ˆ / éŸ³æ•ˆ / é”€æ¯è‡ªèº« / ç»“ç®—åˆ†æ•°
+    //    Debug.Log("[ParcelFeature] æ˜“çˆ†å¿«é€’çˆ†ç‚¸", this);
     //}
 }

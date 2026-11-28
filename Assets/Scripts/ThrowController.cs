@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 
 /// <summary>
 /// 蓄力投掷：按住鼠标左键蓄力，松开把手上的"最上层"物体按抛物线投出。
+/// 头上背着玩家时，同一个键改成把头顶的玩家按同样力度扔出去。
 /// 只在货架触发区外投掷 —— 站在货架旁时，同一个键改成「放上去」：
 /// 按货架长轴从负向到正向依次落位（见 RackController）；拿取仍取离站位最近的那件。
 /// 叠放与取物本身由 GrabController 负责。
@@ -29,6 +30,7 @@ public class ThrowController : MonoBehaviour
     public float SpinSpeed = 8f;
 
     private GrabController grab;
+    private ClimbController climb;
     private bool charging;
     private float chargeTime;
     private RackController currentRack;
@@ -47,6 +49,7 @@ public class ThrowController : MonoBehaviour
     void Awake()
     {
         grab = GetComponent<GrabController>();
+        climb = GetComponent<ClimbController>();
     }
 
     /// <summary>由 RackController 的触发区调用：进入 / 离开货架</summary>
@@ -65,8 +68,8 @@ public class ThrowController : MonoBehaviour
         // 取件不再直接读键盘：改由 PlayerInput 的 Grab 事件转到 OnTake，
         // 键盘玩家按 Q、手柄玩家按 A，各用各的设备，互不串键。
 
-        // 蓄力中手上的东西没了（理论上不会发生，防御性处理），立刻中断
-        if (charging && !grab.IsHolding)
+        // 蓄力中手上的东西 / 头上的玩家没了（防御性处理），立刻中断
+        if (charging && !grab.IsHolding && (climb == null || !climb.IsCarrying))
         {
             charging = false;
             chargeTime = 0f;
@@ -100,7 +103,11 @@ public class ThrowController : MonoBehaviour
 
     private void BeginCharge()
     {
-        if (!grab.IsHolding) return;   // 手上没东西就不蓄力
+        bool carryingRider = climb != null && climb.IsCarrying;
+
+        // 手上没快递、头上也没人时不蓄力
+        if (!carryingRider && !grab.IsHolding) return;
+
         charging = true;
         chargeTime = 0f;
     }
@@ -112,6 +119,15 @@ public class ThrowController : MonoBehaviour
         charging = false;
         float ratio = ChargeRatio;
         chargeTime = 0f;
+
+        // 头上有人：优先把玩家扔出去（即使在货架旁也按投掷处理）
+        if (climb != null && climb.IsCarrying)
+        {
+            Vector3 velocity = LaunchDirection() * Mathf.Lerp(MinSpeed, MaxSpeed, ratio);
+            Vector3 angularVelocity = transform.right * (-SpinSpeed * ratio);
+            climb.ThrowRider(velocity, angularVelocity);
+            return;
+        }
 
         if (!grab.IsHolding) return;
 

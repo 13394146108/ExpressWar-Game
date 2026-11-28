@@ -2,14 +2,14 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// 叠人（把人背在头上）：
+/// 叠人（把别人放到自己头上）：
 /// 1. 站在另一个玩家的检测范围内，按 Climb（键盘 E / 手柄 Y）：
-///    对方没拿快递、且两人都没在叠人时，自己瞬移到对方正上方；
+///    自己没拿快递、双方都没在叠人时，把对方放到自己头顶；
 /// 2. 叠好后，上方玩家的位置完全由下方玩家决定（像被背着走），
 ///    但上方玩家的抓取 / 投掷照常可用；
 ///    下方玩家只能移动，抓取和货架取件都被锁住；
-/// 3. 上方玩家再按一次 Climb：瞬移到下方玩家水平方向身边，双方功能全部恢复；
-/// 4. 下方玩家在有人背着时按 Climb：把上面的人放到身边，同样全部恢复。
+/// 3. 下方玩家通过 Throw（投掷键）把头上的人按投掷力度扔出去，双方功能恢复；
+/// 4. 不再有「再按一次 Climb 回到身边」的逻辑。
 /// </summary>
 [RequireComponent(typeof(GrabController))]
 [RequireComponent(typeof(ThrowController))]
@@ -26,17 +26,14 @@ public class ClimbController : MonoBehaviour
     [Tooltip("站在别人头顶时留出的缝隙")]
     public float MountGap = 0.05f;
 
-    [Tooltip("下车时停在对方身边多远处")]
-    public float DismountOffset = 0.8f;
-
     private GrabController grab;
     private ThrowController throwCtl;
     private Rigidbody body;
 
-    private ClimbController rider;    // 我背着的人（我是下方）
+    private ClimbController rider;    // 我头上的人（我是下方）
     private ClimbController carrier;  // 我踩着的人（我是上方）
 
-    // 上车时量一次，之后每帧复用：自己轴心→脚底、下方玩家轴心→头顶
+    // 叠上去时量一次，之后每帧复用：上方玩家轴心→脚底、下方玩家轴心→头顶
     private float footOffset;
     private float carrierHeadOffset;
 
@@ -67,22 +64,25 @@ public class ClimbController : MonoBehaviour
     {
         if (!ctx.performed) return;   // 只认按下那一刻
 
-        if (rider != null) { DismountRider(); return; }      // 我是下方：把上面的人放下来
-        if (carrier != null) { carrier.DismountRider(); return; } // 我是上方：自己下车
+        // 已经叠好人时，不再通过 Climb 放下；投掷由 Throw 负责
+        if (rider != null || carrier != null) return;
 
-        TryClimb();
+        TryMountRider();
     }
 
-    private void TryClimb()
+    private void TryMountRider()
     {
-        ClimbController bottom = FindBottomInRange();
-        if (bottom == null) return;   // 范围内没有可以踩的人
+        // 我要当底座，自己不能拿着快递
+        if (grab.IsHolding) return;
 
-        MountOn(bottom);
+        ClimbController top = FindRiderInRange();
+        if (top == null) return;   // 范围内没有可以放到头上的人
+
+        MountRider(top);
     }
 
-    /// <summary>在检测范围里找最近的、可以踩上去的玩家</summary>
-    private ClimbController FindBottomInRange()
+    /// <summary>在检测范围里找最近的、可以放到自己头上的玩家</summary>
+    private ClimbController FindRiderInRange()
     {
         Collider[] hits = DetectBox != null
             ? Physics.OverlapBox(DetectBox.bounds.center, DetectBox.bounds.extents,
@@ -100,8 +100,7 @@ public class ClimbController : MonoBehaviour
             // 已经有人在叠他、或者他自己正踩着别人，都不参与
             if (other.rider != null || other.carrier != null) continue;
 
-            // 站在地面的那个人手里不能有快递（头上的人可以有）
-            if (other.grab.IsHolding) continue;
+            // 对方是要放到我头上的人，可以拿着快递；底座不能拿快递在 TryMountRider 里检查
 
             float sqr = (other.transform.position - transform.position).sqrMagnitude;
             if (sqr < bestSqr) { bestSqr = sqr; best = other; }
@@ -110,33 +109,35 @@ public class ClimbController : MonoBehaviour
         return best;
     }
 
-    /// <summary>爬到 bottom 的头顶上</summary>
-    private void MountOn(ClimbController bottom)
+    /// <summary>把 top 放到自己的头顶上，自己成为底座</summary>
+    private void MountRider(ClimbController top)
     {
-        carrier = bottom;
-        bottom.rider = this;
+        rider = top;
+        top.carrier = this;
 
-        // 尺寸要在改物理状态之前量
-        footOffset = PivotToBottom(this);
-        carrierHeadOffset = HeadAbovePivot(bottom);
+        // 尺寸要在改物理状态之前量；两个偏移都存到上方玩家身上，SnapToCarrier 用它
+        top.footOffset = PivotToBottom(top);
+        top.carrierHeadOffset = HeadAbovePivot(this);
 
         // 下方玩家只能移动：抓取、货架取件全部锁住
-        bottom.grab.InputLocked = true;
-        bottom.throwCtl.InputLocked = true;
+        grab.InputLocked = true;
+        throwCtl.InputLocked = true;
 
-        // 上方玩家交给"背负"：不再受重力，位置每帧由下方玩家决定
-        if (body != null)
+        // 上方玩家交给「背负」：不再受重力，位置每帧由下方玩家决定
+        if (top.body != null)
         {
-            body.velocity = Vector3.zero;
-            body.angularVelocity = Vector3.zero;
-            body.isKinematic = true;
+            top.body.velocity = Vector3.zero;
+            top.body.angularVelocity = Vector3.zero;
+            top.body.isKinematic = true;
         }
 
-        SnapToCarrier();
+        top.SnapToCarrier();
     }
 
-    /// <summary>把背上的人放到自己身边，双方输入 / 物理全部恢复（我是下方）</summary>
-    private void DismountRider()
+    /// <summary>
+    /// 由 ThrowController 调用：把头上的玩家按投掷力度扔出去，双方输入 / 物理恢复。
+    /// </summary>
+    public void ThrowRider(Vector3 velocity, Vector3 angularVelocity)
     {
         ClimbController top = rider;
         if (top == null) return;
@@ -144,8 +145,13 @@ public class ClimbController : MonoBehaviour
         rider = null;
         top.carrier = null;
 
-        top.SnapBeside(this);
         top.RestorePhysics();
+
+        if (top.body != null)
+        {
+            top.body.velocity = velocity;
+            top.body.angularVelocity = angularVelocity;
+        }
 
         // 下方玩家恢复抓取 / 取件
         grab.InputLocked = false;
@@ -171,14 +177,6 @@ public class ClimbController : MonoBehaviour
         pos.y = c.position.y + carrierHeadOffset + MountGap + footOffset;
 
         transform.SetPositionAndRotation(pos, c.rotation);
-    }
-
-    /// <summary>挪到下方玩家水平方向身边</summary>
-    private void SnapBeside(ClimbController bottom)
-    {
-        Transform b = bottom.transform;
-        Vector3 pos = b.position + b.right * DismountOffset;
-        transform.SetPositionAndRotation(pos, b.rotation);
     }
 
     private void RestorePhysics()
@@ -238,6 +236,9 @@ public class ClimbController : MonoBehaviour
             rider.carrier = null;
             rider.RestorePhysics();
             rider = null;
+
+            grab.InputLocked = false;
+            throwCtl.InputLocked = false;
         }
     }
 

@@ -31,15 +31,6 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
-                },
-                {
-                    "name": "Climb",
-                    "type": "Button",
-                    "id": "7b4c0540-c55d-4607-8e4d-f9934dcd965b",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -119,17 +110,6 @@
                     "action": "Throw",
                     "isComposite": false,
                     "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "19051dee-d7fb-47bf-b394-547abe71031f",
-                    "path": "<Keyboard>/e",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Climb",
-                    "isComposite": false,
-                    "isPartOfComposite": false
                 }
             ]
         },
@@ -159,15 +139,6 @@
                     "name": "Throw",
                     "type": "Button",
                     "id": "7eb58675-f349-4862-8bfd-02ea9fa6cb0a",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "Climb",
-                    "type": "Button",
-                    "id": "255aa6be-b6c3-485a-9a14-6df6988cbbe9",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -205,17 +176,6 @@
                     "processors": "",
                     "groups": "",
                     "action": "Throw",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "de83f079-e703-43a0-bd8e-1de0b0979eef",
-                    "path": "<XInputController>/buttonNorth",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Climb",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

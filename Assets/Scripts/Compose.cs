@@ -10,7 +10,9 @@ using UnityEngine;
 /// 中间隔了空档就不算（必须占的格子首尾相接），本来就是目标尺寸的单件也不会再合成。
 ///
 /// 优先匹配大快递配方，避免三个小快递先合成中快递、再合成大快递。
-/// 合成结果直接使用对应预制体本身的颜色（默认颜色），不再做颜色混合。
+/// 合成后的颜色由 Resources/ParcelColorMixes.json 里的混合表决定：
+/// 按参与快递的颜色（红 / 绿 / 蓝）和尺寸权重（小 1 / 中 2 / 大 3）加权平均。
+/// 表中没有的组合（例如已经混合过的快递再次参与合成）按同样规则实时计算兜底。
 ///
 /// 只用 RackController 的公开接口（GetPlacedItems / RemovePlaced / PlaceAt / PlacedChanged），
 /// 货架本身的摆放逻辑一点都不用改。
@@ -33,8 +35,17 @@ public class Compose : MonoBehaviour
     [Min(2)]
     public int MediumTargetUnits = 2;
 
+    [Header("颜色混合")]
+    [Tooltip("所有颜色组合的混合表；留空时自动读取 Resources/ParcelColorMixes.json")]
+    public TextAsset ColorMixJson;
+
+    private const string DefaultColorMixResource = "ParcelColorMixes";
+
     // 自己 / 子节点上的所有货板（一个货架预制体里可能有多块板）
     private readonly List<RackController> racks = new List<RackController>();
+
+    // 颜色混合表：键由「尺寸:颜色」排序拼成，例如 "1:Blue|2:Green"
+    private readonly Dictionary<string, Color> colorMixLookup = new Dictionary<string, Color>();
 
     // 复用同一份列表，避免每次合成都分配
     private readonly List<RackController.PlacedInfo> items = new List<RackController.PlacedInfo>();
@@ -53,6 +64,8 @@ public class Compose : MonoBehaviour
             RackController parent = GetComponentInParent<RackController>();
             if (parent != null) racks.Add(parent);
         }
+
+        LoadColorMixes();
     }
 
     void OnEnable()
@@ -150,6 +163,9 @@ public class Compose : MonoBehaviour
         // 生成位置先取这几件的中点，避免合成物在场景原点闪一帧
         Vector3 spawnPos = (head.Body.transform.position + tail.Body.transform.position) * 0.5f;
 
+        // 先按原快递的颜色 + 尺寸权重算出合成后的颜色（要在销毁原件之前取）
+        Color resultColor = ResolveResultColor(start, end);
+
         // 1) 先把原来的快递从货架账本上摘下来（不动它们的物体）
         for (int i = start; i <= end; i++) rack.RemovePlaced(items[i].Body);
 
@@ -165,7 +181,10 @@ public class Compose : MonoBehaviour
             return;
         }
 
-        // 3) 原来的几件已经被合成了，销毁
+        // 3) 刷上混合后的颜色
+        ApplyColor(merged, resultColor);
+
+        // 4) 原来的几件已经被合成了，销毁
         for (int i = start; i <= end; i++)
         {
             Rigidbody body = items[i].Body;
@@ -193,6 +212,210 @@ public class Compose : MonoBehaviour
         }
 
         return rb;
+    }
+
+    // ---------- 颜色混合 ----------
+    /// <summary>算出这批快递合成后的颜色：优先查 JSON，查不到就按尺寸权重实时混合</summary>
+    private Color ResolveResultColor(int start, int end)
+    {
+        bool allPure;
+        string key = BuildKeyFromItems(start, end, out allPure);
+
+        if (allPure && !string.IsNullOrEmpty(key) &&
+            colorMixLookup.TryGetValue(key, out Color color))
+        {
+            return color;
+        }
+
+        return MixColorFromItems(start, end);
+    }
+
+    /// <summary>
+    /// 把参与合成的快递整理成 "尺寸:颜色|尺寸:颜色" 的键。
+    /// 只要有一件是已经混合过的颜色，就返回 null（交给实时混合兜底）。
+    /// </summary>
+    private string BuildKeyFromItems(int start, int end, out bool allPure)
+    {
+        allPure = true;
+        MixPart[] parts = new MixPart[end - start + 1];
+
+        for (int i = start; i <= end; i++)
+        {
+            Rigidbody body = items[i].Body;
+            ParcelFeature feature = body != null
+                ? body.GetComponentInChildren<ParcelFeature>(true)
+                : null;
+
+            if (feature != null && feature.HasMixedColor)
+            {
+                allPure = false;
+                return null;
+            }
+
+            parts[i - start] = new MixPart
+            {
+                Size = items[i].Units,
+                ColorName = feature != null ? ColorNameOf(feature.Type) : "Green"
+            };
+        }
+
+        return BuildMixKey(parts);
+    }
+
+    /// <summary>按尺寸权重实时混合这批快递的当前颜色（用于递归合成 / JSON 缺项）</summary>
+    private Color MixColorFromItems(int start, int end)
+    {
+        float r = 0f, g = 0f, b = 0f;
+        int total = 0;
+
+        for (int i = start; i <= end; i++)
+        {
+            Rigidbody body = items[i].Body;
+            if (body == null) continue;
+
+            ParcelFeature feature = body.GetComponentInChildren<ParcelFeature>(true);
+            Color c = feature != null ? feature.CurrentColor : new Color(0f, 1f, 0f);
+
+            int units = Mathf.Max(1, items[i].Units);
+            r += c.r * units;
+            g += c.g * units;
+            b += c.b * units;
+            total += units;
+        }
+
+        if (total <= 0) return new Color(0f, 1f, 0f);
+        return new Color(r / total, g / total, b / total, 1f);
+    }
+
+    /// <summary>快递类型 → 纯色名</summary>
+    private static string ColorNameOf(ParcelType type)
+    {
+        if (type == ParcelType.Fragile) return "Blue";
+        if (type == ParcelType.Explosive) return "Red";
+        return "Green";
+    }
+
+    /// <summary>把若干「尺寸 + 颜色」排成稳定顺序，作为 JSON 查表键</summary>
+    private static string BuildMixKey(MixPart[] parts)
+    {
+        if (parts == null || parts.Length == 0) return null;
+
+        System.Array.Sort(parts, (a, b) =>
+        {
+            int cmp = a.Size.CompareTo(b.Size);
+            return cmp != 0 ? cmp : string.CompareOrdinal(a.ColorName, b.ColorName);
+        });
+
+        string key = "";
+        for (int i = 0; i < parts.Length; i++)
+        {
+            if (i > 0) key += "|";
+            key += parts[i].Size + ":" + parts[i].ColorName;
+        }
+
+        return key;
+    }
+
+    /// <summary>把混合结果写到合成出来的快递上</summary>
+    private static void ApplyColor(Rigidbody rb, Color color)
+    {
+        ParcelFeature feature = rb.GetComponentInChildren<ParcelFeature>(true);
+        if (feature == null) feature = rb.gameObject.AddComponent<ParcelFeature>();
+
+        feature.SetMixedColor(color);
+    }
+
+    /// <summary>读取 JSON：先用手动指定的文件，没有就从 Resources 里找</summary>
+    private void LoadColorMixes()
+    {
+        colorMixLookup.Clear();
+
+        TextAsset asset = ColorMixJson;
+        if (asset == null) asset = Resources.Load<TextAsset>(DefaultColorMixResource);
+
+        if (asset == null)
+        {
+            Debug.LogWarning(
+                $"[Compose] 找不到颜色混合表：请放到 Resources/{DefaultColorMixResource}.json 或在 Inspector 指定",
+                this);
+            return;
+        }
+
+        ColorMixTable table = JsonUtility.FromJson<ColorMixTable>(asset.text);
+        if (table == null || table.mixes == null)
+        {
+            Debug.LogWarning("[Compose] 颜色混合表解析失败", this);
+            return;
+        }
+
+        for (int i = 0; i < table.mixes.Length; i++)
+        {
+            ColorMixEntry entry = table.mixes[i];
+            if (entry == null || entry.colors == null || entry.sizes == null ||
+                entry.result == null) continue;
+
+            if (entry.colors.Length != entry.sizes.Length || entry.colors.Length == 0) continue;
+
+            MixPart[] parts = new MixPart[entry.colors.Length];
+            bool valid = true;
+
+            for (int p = 0; p < entry.colors.Length; p++)
+            {
+                if (string.IsNullOrEmpty(entry.colors[p]) || entry.sizes[p] <= 0)
+                {
+                    valid = false;
+                    break;
+                }
+
+                parts[p] = new MixPart
+                {
+                    Size = entry.sizes[p],
+                    ColorName = entry.colors[p]
+                };
+            }
+
+            if (!valid) continue;
+
+            string key = BuildMixKey(parts);
+            if (key == null) continue;
+
+            colorMixLookup[key] = new Color(
+                entry.result.r / 255f,
+                entry.result.g / 255f,
+                entry.result.b / 255f,
+                1f);
+        }
+
+        Debug.Log($"[Compose] 已读取 {colorMixLookup.Count} 条颜色混合规则", this);
+    }
+
+    [System.Serializable]
+    public class ColorMixTable
+    {
+        public ColorMixEntry[] mixes;
+    }
+
+    [System.Serializable]
+    public class ColorMixEntry
+    {
+        public string id;
+        public string[] colors;
+        public int[] sizes;
+        public ColorRgb result;
+    }
+
+    [System.Serializable]
+    public class ColorRgb
+    {
+        public int r;
+        public int g;
+        public int b;
+    }
+
+    private struct MixPart
+    {
+        public int Size;
+        public string ColorName;
     }
 
 #if UNITY_EDITOR
