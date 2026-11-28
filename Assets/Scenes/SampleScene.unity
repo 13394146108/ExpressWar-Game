@@ -283,11 +283,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   LargeParcelPrefab: {fileID: 882828079525837441, guid: fac1672bf35ad6f418411a15e7a24e21, type: 3}
+  MediumParcelPrefab: {fileID: 2120347201738097299, guid: c840227ddb53d074292e24db39556a1e, type: 3}
   TargetUnits: 3
-  YellowRed: {fileID: 2100000, guid: 9523b7852ab23f24f94825423ec03e8e, type: 2}
-  YellowBlue: {fileID: 2100000, guid: 003724069f234014d8a8bbef8279c32d, type: 2}
-  RedBlue: {fileID: 2100000, guid: e3bda86ea64028e40bcbe1e308bb5e6f, type: 2}
-  YellowRedBlue: {fileID: 2100000, guid: 08c20cbebdb345f40abe727d931d4353, type: 2}
+  MediumTargetUnits: 2
 --- !u!114 &112204042
 MonoBehaviour:
   m_ObjectHideFlags: 0
